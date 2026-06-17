@@ -165,23 +165,43 @@ export default function TrackerTab({
     setShowFoodModal(false);
   }
 
+  // ===== Progress Bar مع أنيميشن قوي =====
+  const AnimatedProgressBar = ({ percent, isComplete, gradient, delay }: { percent: number; isComplete: boolean; gradient: string; delay: number }) => (
+    <div className="mt-3 w-full bg-white/10 rounded-full h-2.5 overflow-hidden border border-white/5 relative">
+      <motion.div
+        initial={{ width: 0 }}
+        animate={{ width: `${Math.min(percent, 100)}%` }}
+        transition={{ 
+          duration: 2.5, 
+          delay, 
+          ease: [0.4, 0, 0.2, 1],
+        }}
+        className={`h-full rounded-full ${isComplete ? 'bg-gradient-to-r from-green-400 to-emerald-500' : gradient} relative`}
+        style={{ 
+          boxShadow: isComplete ? '0 0 30px rgba(74, 222, 128, 0.5)' : '0 0 30px rgba(251, 146, 60, 0.3)',
+        }}
+      >
+        {/* أنيميشن تموج على الشريط */}
+        <motion.div
+          className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/30 to-transparent"
+          animate={{ x: ['-100%', '200%'] }}
+          transition={{ duration: 2.5, repeat: Infinity, ease: 'linear' }}
+        />
+      </motion.div>
+    </div>
+  );
+
   return (
     <div className="space-y-6">
       {/* ============================================================
-          🔥 القسم 1: أكلت اليوم - تصميم أقوى وأفخم
+          🔥 القسم 1: أكلت اليوم
           ============================================================ */}
       <motion.div
         initial={{ opacity: 0, y: 50, scale: 0.95 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ 
-          type: 'spring', 
-          bounce: 0.5, 
-          duration: 1,
-          delay: 0.1 
-        }}
+        transition={{ type: 'spring', bounce: 0.5, duration: 1, delay: 0.1 }}
         className="relative overflow-hidden glass-card rounded-3xl p-6 sm:p-7 border border-emerald-500/15 shadow-2xl shadow-emerald-500/5"
       >
-        {/* خلفية متحركة */}
         <div className="absolute -top-32 -right-32 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl animate-pulse" />
         <div className="absolute -bottom-32 -left-32 w-64 h-64 bg-teal-500/10 rounded-full blur-3xl animate-pulse delay-1000" />
 
@@ -224,87 +244,54 @@ export default function TrackerTab({
 
           {todayFoods.length > 0 ? (
             <>
-              {/* ===== خانات الماكروز العملاقة ===== */}
+              {/* ===== خانات الماكروز مع أنيميشن Progress Bar ===== */}
               <motion.div
                 initial={{ opacity: 0, y: 40 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.2 }}
                 className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-5"
               >
-                {/* 🏆 السعرات */}
+                {/* السعرات */}
                 <motion.div
                   initial={{ opacity: 0, scale: 0.7, rotateY: -30 }}
                   animate={{ opacity: 1, scale: 1, rotateY: 0 }}
-                  transition={{ 
-                    delay: 0.05, 
-                    type: 'spring', 
-                    bounce: 0.6,
-                    duration: 0.9
-                  }}
-                  whileHover={{ scale: 1.03, y: -4, transition: { duration: 0.2 } }}
+                  transition={{ delay: 0.05, type: 'spring', bounce: 0.6, duration: 0.9 }}
+                  whileHover={{ scale: 1.03, y: -4 }}
                   className={`relative bg-gradient-to-br from-orange-500/20 via-red-500/10 to-amber-500/5 rounded-2xl p-5 text-center overflow-hidden border-2 transition-all duration-300 ${
-                    isCalComplete 
-                      ? 'border-green-500/50 shadow-2xl shadow-green-500/20' 
-                      : 'border-orange-500/20 hover:border-orange-500/40'
+                    isCalComplete ? 'border-green-500/50 shadow-2xl shadow-green-500/20' : 'border-orange-500/20 hover:border-orange-500/40'
                   }`}
                 >
                   {isCalComplete && (
-                    <motion.div
-                      initial={{ scale: 0, rotate: -180 }}
-                      animate={{ scale: 1, rotate: 0 }}
-                      transition={{ type: 'spring', bounce: 0.6 }}
-                      className="absolute top-2 left-2"
-                    >
-                      <div className="w-6 h-6 rounded-full bg-green-500/20 flex items-center justify-center border border-green-500/40">
-                        <Check size={14} className="text-green-400" />
-                      </div>
+                    <motion.div initial={{ scale: 0, rotate: -180 }} animate={{ scale: 1, rotate: 0 }} transition={{ type: 'spring', bounce: 0.6 }} className="absolute top-2 left-2">
+                      <div className="w-6 h-6 rounded-full bg-green-500/20 flex items-center justify-center border border-green-500/40"><Check size={14} className="text-green-400" /></div>
                     </motion.div>
                   )}
                   <div className="relative z-10">
-                    <motion.div 
-                      animate={{ rotate: [0, 10, -10, 0] }}
-                      transition={{ duration: 4, repeat: Infinity }}
-                      className="text-3xl"
-                    >
-                      🔥
-                    </motion.div>
-                    <motion.div 
-                      initial={{ opacity: 0, y: 15 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.2 }}
-                      className={`text-4xl font-black mt-1 ${isCalComplete ? 'text-green-400' : 'text-orange-400'}`}
-                      style={{ textShadow: isCalComplete ? '0 0 40px rgba(74, 222, 128, 0.3)' : '0 0 40px rgba(251, 146, 60, 0.3)' }}
-                    >
+                    <motion.div animate={{ rotate: [0, 10, -10, 0] }} transition={{ duration: 4, repeat: Infinity }} className="text-3xl">🔥</motion.div>
+                    <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className={`text-4xl font-black mt-1 ${isCalComplete ? 'text-green-400' : 'text-orange-400'}`} style={{ textShadow: isCalComplete ? '0 0 40px rgba(74, 222, 128, 0.3)' : '0 0 40px rgba(251, 146, 60, 0.3)' }}>
                       {Math.round(todayTotal.calories)}
                     </motion.div>
                     <div className="text-sm text-white/40 font-bold tracking-wider">سعرات</div>
-                    <div className="mt-3 w-full bg-white/10 rounded-full h-2 overflow-hidden border border-white/5">
-                      <motion.div
-                        initial={{ width: 0 }}
-                        animate={{ width: `${Math.min(calPercent, 100)}%` }}
-                        transition={{ duration: 1.5, delay: 0.4, ease: [0.4, 0, 0.2, 1] }}
-                        className={`h-full rounded-full ${
-                          isCalComplete ? 'bg-gradient-to-r from-green-400 to-emerald-500' : 'bg-gradient-to-r from-orange-500 to-red-500'
-                        }`}
-                        style={{ boxShadow: '0 0 20px rgba(251, 146, 60, 0.3)' }}
-                      />
-                    </div>
+                    <AnimatedProgressBar 
+                      percent={calPercent} 
+                      isComplete={isCalComplete} 
+                      gradient="bg-gradient-to-r from-orange-500 to-red-500"
+                      delay={0.4}
+                    />
                     <div className="mt-1.5 text-xs font-bold text-white/30">
                       {isCalComplete ? '✅ مكتمل!' : `${Math.round(calPercent)}% من الهدف`}
                     </div>
                   </div>
                 </motion.div>
 
-                {/* 💪 البروتين */}
+                {/* البروتين */}
                 <motion.div
                   initial={{ opacity: 0, scale: 0.7, rotateY: -30 }}
                   animate={{ opacity: 1, scale: 1, rotateY: 0 }}
                   transition={{ delay: 0.1, type: 'spring', bounce: 0.6, duration: 0.9 }}
-                  whileHover={{ scale: 1.03, y: -4, transition: { duration: 0.2 } }}
+                  whileHover={{ scale: 1.03, y: -4 }}
                   className={`relative bg-gradient-to-br from-blue-500/20 via-cyan-500/10 to-indigo-500/5 rounded-2xl p-5 text-center overflow-hidden border-2 transition-all duration-300 ${
-                    isProteinComplete 
-                      ? 'border-green-500/50 shadow-2xl shadow-green-500/20' 
-                      : 'border-blue-500/20 hover:border-blue-500/40'
+                    isProteinComplete ? 'border-green-500/50 shadow-2xl shadow-green-500/20' : 'border-blue-500/20 hover:border-blue-500/40'
                   }`}
                 >
                   {isProteinComplete && (
@@ -318,23 +305,26 @@ export default function TrackerTab({
                       {Math.round(todayTotal.protein)}<span className="text-xl font-normal opacity-50">g</span>
                     </motion.div>
                     <div className="text-sm text-white/40 font-bold tracking-wider">بروتين</div>
-                    <div className="mt-3 w-full bg-white/10 rounded-full h-2 overflow-hidden border border-white/5">
-                      <motion.div initial={{ width: 0 }} animate={{ width: `${Math.min(proteinPercent, 100)}%` }} transition={{ duration: 1.5, delay: 0.45, ease: [0.4, 0, 0.2, 1] }} className={`h-full rounded-full ${isProteinComplete ? 'bg-gradient-to-r from-green-400 to-emerald-500' : 'bg-gradient-to-r from-blue-500 to-cyan-400'}`} style={{ boxShadow: '0 0 20px rgba(96, 165, 250, 0.3)' }} />
+                    <AnimatedProgressBar 
+                      percent={proteinPercent} 
+                      isComplete={isProteinComplete} 
+                      gradient="bg-gradient-to-r from-blue-500 to-cyan-400"
+                      delay={0.45}
+                    />
+                    <div className="mt-1.5 text-xs font-bold text-white/30">
+                      {isProteinComplete ? '✅ مكتمل!' : `${Math.round(proteinPercent)}% من الهدف`}
                     </div>
-                    <div className="mt-1.5 text-xs font-bold text-white/30">{isProteinComplete ? '✅ مكتمل!' : `${Math.round(proteinPercent)}% من الهدف`}</div>
                   </div>
                 </motion.div>
 
-                {/* 🌾 الكارب */}
+                {/* الكارب */}
                 <motion.div
                   initial={{ opacity: 0, scale: 0.7, rotateY: -30 }}
                   animate={{ opacity: 1, scale: 1, rotateY: 0 }}
                   transition={{ delay: 0.15, type: 'spring', bounce: 0.6, duration: 0.9 }}
-                  whileHover={{ scale: 1.03, y: -4, transition: { duration: 0.2 } }}
+                  whileHover={{ scale: 1.03, y: -4 }}
                   className={`relative bg-gradient-to-br from-amber-500/20 via-yellow-500/10 to-orange-500/5 rounded-2xl p-5 text-center overflow-hidden border-2 transition-all duration-300 ${
-                    isCarbsComplete 
-                      ? 'border-green-500/50 shadow-2xl shadow-green-500/20' 
-                      : 'border-amber-500/20 hover:border-amber-500/40'
+                    isCarbsComplete ? 'border-green-500/50 shadow-2xl shadow-green-500/20' : 'border-amber-500/20 hover:border-amber-500/40'
                   }`}
                 >
                   {isCarbsComplete && (
@@ -348,23 +338,26 @@ export default function TrackerTab({
                       {Math.round(todayTotal.carbs)}<span className="text-xl font-normal opacity-50">g</span>
                     </motion.div>
                     <div className="text-sm text-white/40 font-bold tracking-wider">كربوهيدرات</div>
-                    <div className="mt-3 w-full bg-white/10 rounded-full h-2 overflow-hidden border border-white/5">
-                      <motion.div initial={{ width: 0 }} animate={{ width: `${Math.min(carbsPercent, 100)}%` }} transition={{ duration: 1.5, delay: 0.5, ease: [0.4, 0, 0.2, 1] }} className={`h-full rounded-full ${isCarbsComplete ? 'bg-gradient-to-r from-green-400 to-emerald-500' : 'bg-gradient-to-r from-amber-500 to-yellow-400'}`} style={{ boxShadow: '0 0 20px rgba(245, 158, 11, 0.3)' }} />
+                    <AnimatedProgressBar 
+                      percent={carbsPercent} 
+                      isComplete={isCarbsComplete} 
+                      gradient="bg-gradient-to-r from-amber-500 to-yellow-400"
+                      delay={0.5}
+                    />
+                    <div className="mt-1.5 text-xs font-bold text-white/30">
+                      {isCarbsComplete ? '✅ مكتمل!' : `${Math.round(carbsPercent)}% من الهدف`}
                     </div>
-                    <div className="mt-1.5 text-xs font-bold text-white/30">{isCarbsComplete ? '✅ مكتمل!' : `${Math.round(carbsPercent)}% من الهدف`}</div>
                   </div>
                 </motion.div>
 
-                {/* 🧈 الدهون */}
+                {/* الدهون */}
                 <motion.div
                   initial={{ opacity: 0, scale: 0.7, rotateY: -30 }}
                   animate={{ opacity: 1, scale: 1, rotateY: 0 }}
                   transition={{ delay: 0.2, type: 'spring', bounce: 0.6, duration: 0.9 }}
-                  whileHover={{ scale: 1.03, y: -4, transition: { duration: 0.2 } }}
+                  whileHover={{ scale: 1.03, y: -4 }}
                   className={`relative bg-gradient-to-br from-pink-500/20 via-rose-500/10 to-fuchsia-500/5 rounded-2xl p-5 text-center overflow-hidden border-2 transition-all duration-300 ${
-                    isFatComplete 
-                      ? 'border-green-500/50 shadow-2xl shadow-green-500/20' 
-                      : 'border-pink-500/20 hover:border-pink-500/40'
+                    isFatComplete ? 'border-green-500/50 shadow-2xl shadow-green-500/20' : 'border-pink-500/20 hover:border-pink-500/40'
                   }`}
                 >
                   {isFatComplete && (
@@ -378,10 +371,15 @@ export default function TrackerTab({
                       {Math.round(todayTotal.fat)}<span className="text-xl font-normal opacity-50">g</span>
                     </motion.div>
                     <div className="text-sm text-white/40 font-bold tracking-wider">دهون</div>
-                    <div className="mt-3 w-full bg-white/10 rounded-full h-2 overflow-hidden border border-white/5">
-                      <motion.div initial={{ width: 0 }} animate={{ width: `${Math.min(fatPercent, 100)}%` }} transition={{ duration: 1.5, delay: 0.55, ease: [0.4, 0, 0.2, 1] }} className={`h-full rounded-full ${isFatComplete ? 'bg-gradient-to-r from-green-400 to-emerald-500' : 'bg-gradient-to-r from-pink-500 to-rose-400'}`} style={{ boxShadow: '0 0 20px rgba(236, 72, 153, 0.3)' }} />
+                    <AnimatedProgressBar 
+                      percent={fatPercent} 
+                      isComplete={isFatComplete} 
+                      gradient="bg-gradient-to-r from-pink-500 to-rose-400"
+                      delay={0.55}
+                    />
+                    <div className="mt-1.5 text-xs font-bold text-white/30">
+                      {isFatComplete ? '✅ مكتمل!' : `${Math.round(fatPercent)}% من الهدف`}
                     </div>
-                    <div className="mt-1.5 text-xs font-bold text-white/30">{isFatComplete ? '✅ مكتمل!' : `${Math.round(fatPercent)}% من الهدف`}</div>
                   </div>
                 </motion.div>
               </motion.div>
@@ -436,41 +434,22 @@ export default function TrackerTab({
                           isSavedMeal ? 'border-primary-500/40 bg-primary-500/10' : ''
                         }`}
                       >
-                        <motion.button
-                          whileHover={{ scale: 1.25, rotate: 90 }}
-                          whileTap={{ scale: 0.8 }}
-                          onClick={() => onRemoveFoodFromToday(food.id)}
-                          className="text-white/20 hover:text-red-400 transition-all p-2 rounded-xl hover:bg-red-500/15 shrink-0"
-                        >
+                        <motion.button whileHover={{ scale: 1.25, rotate: 90 }} whileTap={{ scale: 0.8 }} onClick={() => onRemoveFoodFromToday(food.id)} className="text-white/20 hover:text-red-400 transition-all p-2 rounded-xl hover:bg-red-500/15 shrink-0">
                           <X size={16} />
                         </motion.button>
 
                         <div className="flex-1 flex flex-wrap gap-2 items-center">
                           {isSavedMeal && (
-                            <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', bounce: 0.6 }} className="text-[10px] px-2.5 py-1 rounded-full font-bold border border-primary-500/40 bg-primary-500/15 text-primary-400 uppercase tracking-wider">
-                              📦 وجبة كاملة
-                            </motion.span>
+                            <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', bounce: 0.6 }} className="text-[10px] px-2.5 py-1 rounded-full font-bold border border-primary-500/40 bg-primary-500/15 text-primary-400 uppercase tracking-wider">📦 وجبة كاملة</motion.span>
                           )}
-                          <span className={`text-[10px] px-2.5 py-1 rounded-full font-bold border ${mealTypeColors[food.mealType]}`}>
-                            {mealTypeEmojis[food.mealType]} {food.mealType}
-                          </span>
-                          <span className="text-[10px] text-orange-400/80 bg-orange-400/15 px-2.5 py-1 rounded-full font-bold border border-orange-400/20">
-                            {food.nutrition.calories} cal
-                          </span>
-                          <span className="text-[10px] text-blue-400/80 bg-blue-400/15 px-2.5 py-1 rounded-full font-bold border border-blue-400/20">
-                            {food.nutrition.protein}g P
-                          </span>
+                          <span className={`text-[10px] px-2.5 py-1 rounded-full font-bold border ${mealTypeColors[food.mealType]}`}>{mealTypeEmojis[food.mealType]} {food.mealType}</span>
+                          <span className="text-[10px] text-orange-400/80 bg-orange-400/15 px-2.5 py-1 rounded-full font-bold border border-orange-400/20">{food.nutrition.calories} cal</span>
+                          <span className="text-[10px] text-blue-400/80 bg-blue-400/15 px-2.5 py-1 rounded-full font-bold border border-blue-400/20">{food.nutrition.protein}g P</span>
                         </div>
 
                         <div className="text-right shrink-0">
-                          <div className="text-white/90 font-bold text-base">
-                            {food.nameAr}
-                            {isSavedMeal && <span className="text-[10px] text-primary-400/60 mr-1.5 font-normal">(وجبة)</span>}
-                          </div>
-                          <div className="text-white/30 text-xs mt-0.5 font-medium">
-                            {food.quantity} {unitLabels[food.unit] || food.unit}
-                            {food.notes && <span className="mr-2 text-white/15">📝 {food.notes}</span>}
-                          </div>
+                          <div className="text-white/90 font-bold text-base">{food.nameAr}{isSavedMeal && <span className="text-[10px] text-primary-400/60 mr-1.5 font-normal">(وجبة)</span>}</div>
+                          <div className="text-white/30 text-xs mt-0.5 font-medium">{food.quantity} {unitLabels[food.unit] || food.unit}{food.notes && <span className="mr-2 text-white/15">📝 {food.notes}</span>}</div>
                         </div>
                       </motion.div>
                     );
@@ -478,33 +457,15 @@ export default function TrackerTab({
                 </AnimatePresence>
               </div>
 
-              {/* ===== زر مسح اليوم ===== */}
               <div className="flex justify-end mt-4">
-                <motion.button
-                  whileHover={{ scale: 1.08, color: '#ef4444' }}
-                  whileTap={{ scale: 0.92 }}
-                  onClick={onClearToday}
-                  className="text-white/25 hover:text-red-400 text-xs flex items-center gap-1.5 px-4 py-2 rounded-xl hover:bg-red-500/10 transition-all border border-transparent hover:border-red-500/20 font-medium"
-                >
-                  <RotateCcw size={14} />
-                  مسح اليوم
+                <motion.button whileHover={{ scale: 1.08, color: '#ef4444' }} whileTap={{ scale: 0.92 }} onClick={onClearToday} className="text-white/25 hover:text-red-400 text-xs flex items-center gap-1.5 px-4 py-2 rounded-xl hover:bg-red-500/10 transition-all border border-transparent hover:border-red-500/20 font-medium">
+                  <RotateCcw size={14} /> مسح اليوم
                 </motion.button>
               </div>
             </>
           ) : (
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ type: 'spring', bounce: 0.5 }}
-              className="text-center py-14"
-            >
-              <motion.div
-                animate={{ y: [0, -15, 0], rotate: [0, 8, -8, 0] }}
-                transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-                className="text-6xl mb-4 opacity-20"
-              >
-                🍽️
-              </motion.div>
+            <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'spring', bounce: 0.5 }} className="text-center py-14">
+              <motion.div animate={{ y: [0, -15, 0], rotate: [0, 8, -8, 0] }} transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }} className="text-6xl mb-4 opacity-20">🍽️</motion.div>
               <p className="text-white/25 text-lg font-bold">لم تأكل أي شيء اليوم</p>
               <p className="text-white/15 text-sm mt-1.5">اضغط على <span className="text-emerald-400/60 font-bold">"أضف أكل اليوم"</span> لتسجيل ما أكلته</p>
             </motion.div>
@@ -513,17 +474,12 @@ export default function TrackerTab({
       </motion.div>
 
       {/* ============================================================
-          ⚡ القسم 2: اصنع وجبتك - تصميم أقوى وأفخم
+          ⚡ القسم 2: اصنع وجبتك
           ============================================================ */}
       <motion.div
         initial={{ opacity: 0, y: 50, scale: 0.95 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ 
-          type: 'spring', 
-          bounce: 0.5, 
-          duration: 1,
-          delay: 0.2 
-        }}
+        transition={{ type: 'spring', bounce: 0.5, duration: 1, delay: 0.2 }}
         className="relative overflow-hidden glass-card rounded-3xl p-6 sm:p-7 border border-primary-500/15 shadow-2xl shadow-primary-500/5"
       >
         <div className="absolute -top-32 -right-32 w-64 h-64 bg-primary-500/10 rounded-full blur-3xl animate-pulse" />
@@ -533,44 +489,21 @@ export default function TrackerTab({
           <div className="flex items-center justify-between mb-5">
             {mealEntries.length > 0 && (
               <div className="flex gap-3">
-                <motion.button
-                  whileHover={{ scale: 1.08 }}
-                  whileTap={{ scale: 0.92 }}
-                  onClick={clearMealBuilder}
-                  className="text-white/25 hover:text-red-400 text-xs flex items-center gap-1.5 px-4 py-2 rounded-xl hover:bg-red-500/10 transition-all border border-transparent hover:border-red-500/20 font-medium"
-                >
-                  <RotateCcw size={14} />
-                  مسح الكل
+                <motion.button whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.92 }} onClick={clearMealBuilder} className="text-white/25 hover:text-red-400 text-xs flex items-center gap-1.5 px-4 py-2 rounded-xl hover:bg-red-500/10 transition-all border border-transparent hover:border-red-500/20 font-medium">
+                  <RotateCcw size={14} /> مسح الكل
                 </motion.button>
-                <motion.button
-                  whileHover={{ scale: 1.08, boxShadow: '0 0 40px rgba(16, 185, 129, 0.4)' }}
-                  whileTap={{ scale: 0.92 }}
-                  onClick={() => setShowSaveMealDialog(true)}
-                  disabled={mealEntries.length === 0}
-                  className="group relative flex items-center gap-2 px-5 py-2 rounded-xl text-white font-bold text-xs bg-gradient-to-r from-primary-500 to-emerald-500 shadow-lg shadow-primary-500/30 disabled:opacity-30 transition-all duration-300 overflow-hidden"
-                >
+                <motion.button whileHover={{ scale: 1.08, boxShadow: '0 0 40px rgba(16, 185, 129, 0.4)' }} whileTap={{ scale: 0.92 }} onClick={() => setShowSaveMealDialog(true)} disabled={mealEntries.length === 0} className="group relative flex items-center gap-2 px-5 py-2 rounded-xl text-white font-bold text-xs bg-gradient-to-r from-primary-500 to-emerald-500 shadow-lg shadow-primary-500/30 disabled:opacity-30 transition-all duration-300 overflow-hidden">
                   <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
-                  <Save size={14} />
-                  حفظ كوجبة
+                  <Save size={14} /> حفظ كوجبة
                 </motion.button>
               </div>
             )}
-            <motion.div 
-              initial={{ opacity: 0, x: 30 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.3, type: 'spring', bounce: 0.4 }}
-              className="flex items-center gap-3"
-            >
+            <motion.div initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3, type: 'spring', bounce: 0.4 }} className="flex items-center gap-3">
               <UtensilsCrossed size={22} className="text-primary-400" />
               <h2 className="text-xl font-black text-white/90 flex items-center gap-2">
                 ⚡ اصنع وجبتك
                 {mealEntries.length > 0 && (
-                  <motion.span 
-                    initial={{ scale: 0, rotate: -180 }}
-                    animate={{ scale: 1, rotate: 0 }}
-                    transition={{ type: 'spring', bounce: 0.6 }}
-                    className="text-sm text-white/30 bg-white/10 px-3 py-0.5 rounded-full font-bold backdrop-blur-sm border border-white/10"
-                  >
+                  <motion.span initial={{ scale: 0, rotate: -180 }} animate={{ scale: 1, rotate: 0 }} transition={{ type: 'spring', bounce: 0.6 }} className="text-sm text-white/30 bg-white/10 px-3 py-0.5 rounded-full font-bold backdrop-blur-sm border border-white/10">
                     {mealEntries.length}
                   </motion.span>
                 )}
@@ -608,13 +541,14 @@ export default function TrackerTab({
                   )}
                   <div className="relative z-10">
                     <span className="text-xl">🔥</span>
-                    <div className={`text-2xl font-black mt-0.5 ${isMealCalComplete ? 'text-green-400' : 'text-orange-400'}`}>
-                      {Math.round(mealTotal.calories)}
-                    </div>
+                    <div className={`text-2xl font-black mt-0.5 ${isMealCalComplete ? 'text-green-400' : 'text-orange-400'}`}>{Math.round(mealTotal.calories)}</div>
                     <div className="text-[10px] text-white/30 font-bold">سعرات</div>
-                    <div className="mt-1.5 w-full bg-white/10 rounded-full h-1.5 overflow-hidden border border-white/5">
-                      <motion.div initial={{ width: 0 }} animate={{ width: `${Math.min(mealCalPercent, 100)}%` }} transition={{ duration: 1.2, delay: 0.3 }} className={`h-full rounded-full ${isMealCalComplete ? 'bg-green-500' : 'bg-gradient-to-r from-orange-500 to-red-500'}`} />
-                    </div>
+                    <AnimatedProgressBar 
+                      percent={mealCalPercent} 
+                      isComplete={isMealCalComplete} 
+                      gradient="bg-gradient-to-r from-orange-500 to-red-500"
+                      delay={0.3}
+                    />
                     <div className="mt-1 text-[9px] font-bold text-white/25">{isMealCalComplete ? '✅' : `${Math.round(mealCalPercent)}%`}</div>
                   </div>
                 </motion.div>
@@ -636,13 +570,14 @@ export default function TrackerTab({
                   )}
                   <div className="relative z-10">
                     <span className="text-xl">💪</span>
-                    <div className={`text-2xl font-black mt-0.5 ${isMealProteinComplete ? 'text-green-400' : 'text-blue-400'}`}>
-                      {Math.round(mealTotal.protein)}<span className="text-xs font-normal opacity-50">g</span>
-                    </div>
+                    <div className={`text-2xl font-black mt-0.5 ${isMealProteinComplete ? 'text-green-400' : 'text-blue-400'}`}>{Math.round(mealTotal.protein)}<span className="text-xs font-normal opacity-50">g</span></div>
                     <div className="text-[10px] text-white/30 font-bold">بروتين</div>
-                    <div className="mt-1.5 w-full bg-white/10 rounded-full h-1.5 overflow-hidden border border-white/5">
-                      <motion.div initial={{ width: 0 }} animate={{ width: `${Math.min(mealProteinPercent, 100)}%` }} transition={{ duration: 1.2, delay: 0.35 }} className={`h-full rounded-full ${isMealProteinComplete ? 'bg-green-500' : 'bg-gradient-to-r from-blue-500 to-cyan-400'}`} />
-                    </div>
+                    <AnimatedProgressBar 
+                      percent={mealProteinPercent} 
+                      isComplete={isMealProteinComplete} 
+                      gradient="bg-gradient-to-r from-blue-500 to-cyan-400"
+                      delay={0.35}
+                    />
                     <div className="mt-1 text-[9px] font-bold text-white/25">{isMealProteinComplete ? '✅' : `${Math.round(mealProteinPercent)}%`}</div>
                   </div>
                 </motion.div>
@@ -664,13 +599,14 @@ export default function TrackerTab({
                   )}
                   <div className="relative z-10">
                     <span className="text-xl">🌾</span>
-                    <div className={`text-2xl font-black mt-0.5 ${isMealCarbsComplete ? 'text-green-400' : 'text-amber-400'}`}>
-                      {Math.round(mealTotal.carbs)}<span className="text-xs font-normal opacity-50">g</span>
-                    </div>
+                    <div className={`text-2xl font-black mt-0.5 ${isMealCarbsComplete ? 'text-green-400' : 'text-amber-400'}`}>{Math.round(mealTotal.carbs)}<span className="text-xs font-normal opacity-50">g</span></div>
                     <div className="text-[10px] text-white/30 font-bold">كارب</div>
-                    <div className="mt-1.5 w-full bg-white/10 rounded-full h-1.5 overflow-hidden border border-white/5">
-                      <motion.div initial={{ width: 0 }} animate={{ width: `${Math.min(mealCarbsPercent, 100)}%` }} transition={{ duration: 1.2, delay: 0.4 }} className={`h-full rounded-full ${isMealCarbsComplete ? 'bg-green-500' : 'bg-gradient-to-r from-amber-500 to-yellow-400'}`} />
-                    </div>
+                    <AnimatedProgressBar 
+                      percent={mealCarbsPercent} 
+                      isComplete={isMealCarbsComplete} 
+                      gradient="bg-gradient-to-r from-amber-500 to-yellow-400"
+                      delay={0.4}
+                    />
                     <div className="mt-1 text-[9px] font-bold text-white/25">{isMealCarbsComplete ? '✅' : `${Math.round(mealCarbsPercent)}%`}</div>
                   </div>
                 </motion.div>
@@ -692,13 +628,14 @@ export default function TrackerTab({
                   )}
                   <div className="relative z-10">
                     <span className="text-xl">🧈</span>
-                    <div className={`text-2xl font-black mt-0.5 ${isMealFatComplete ? 'text-green-400' : 'text-pink-400'}`}>
-                      {Math.round(mealTotal.fat)}<span className="text-xs font-normal opacity-50">g</span>
-                    </div>
+                    <div className={`text-2xl font-black mt-0.5 ${isMealFatComplete ? 'text-green-400' : 'text-pink-400'}`}>{Math.round(mealTotal.fat)}<span className="text-xs font-normal opacity-50">g</span></div>
                     <div className="text-[10px] text-white/30 font-bold">دهون</div>
-                    <div className="mt-1.5 w-full bg-white/10 rounded-full h-1.5 overflow-hidden border border-white/5">
-                      <motion.div initial={{ width: 0 }} animate={{ width: `${Math.min(mealFatPercent, 100)}%` }} transition={{ duration: 1.2, delay: 0.45 }} className={`h-full rounded-full ${isMealFatComplete ? 'bg-green-500' : 'bg-gradient-to-r from-pink-500 to-rose-400'}`} />
-                    </div>
+                    <AnimatedProgressBar 
+                      percent={mealFatPercent} 
+                      isComplete={isMealFatComplete} 
+                      gradient="bg-gradient-to-r from-pink-500 to-rose-400"
+                      delay={0.45}
+                    />
                     <div className="mt-1 text-[9px] font-bold text-white/25">{isMealFatComplete ? '✅' : `${Math.round(mealFatPercent)}%`}</div>
                   </div>
                 </motion.div>
@@ -722,12 +659,8 @@ export default function TrackerTab({
                       </motion.button>
 
                       <div className="flex-1 flex flex-wrap gap-1.5 items-center">
-                        <span className="text-[10px] text-orange-400/80 bg-orange-400/15 px-2.5 py-0.5 rounded-full font-bold border border-orange-400/20">
-                          {entry.nutrition.calories} cal
-                        </span>
-                        <span className="text-[10px] text-blue-400/80 bg-blue-400/15 px-2.5 py-0.5 rounded-full font-bold border border-blue-400/20">
-                          {entry.nutrition.protein}g
-                        </span>
+                        <span className="text-[10px] text-orange-400/80 bg-orange-400/15 px-2.5 py-0.5 rounded-full font-bold border border-orange-400/20">{entry.nutrition.calories} cal</span>
+                        <span className="text-[10px] text-blue-400/80 bg-blue-400/15 px-2.5 py-0.5 rounded-full font-bold border border-blue-400/20">{entry.nutrition.protein}g</span>
                       </div>
 
                       <div className="text-right shrink-0">
@@ -738,7 +671,6 @@ export default function TrackerTab({
                   ))}
                 </AnimatePresence>
 
-                {/* ===== إجمالي الوجبة ===== */}
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="mt-4 pt-3 border-t-2 border-white/5">
                   <div className="flex items-center justify-between text-xs">
                     <span className="text-white/30 font-bold">📊 إجمالي الوجبة</span>
