@@ -56,12 +56,13 @@ export default function Header({ activeTab, setActiveTab, totalNutrition, profil
   return (
     <header className="sticky top-0 z-50 glass border-b border-white/[0.05]">
       <div className="max-w-4xl mx-auto px-4">
-        {/* Top Row: Logo + Tab Navigation */}
+        {/* Top Row: Logo (Right) + Tab Navigation (Left) */}
         <div className="flex items-center justify-between py-2">
+          {/* Logo - RIGHT side (العربية من اليمين) */}
           <motion.div
-            initial={{ opacity: 0, x: -20 }}
+            initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 order-1"
           >
             <span className="text-xl">⚖️</span>
             <div className="hidden sm:block">
@@ -72,7 +73,8 @@ export default function Header({ activeTab, setActiveTab, totalNutrition, profil
             </div>
           </motion.div>
 
-          <nav className="flex gap-1 bg-white/[0.03] rounded-2xl p-1">
+          {/* Tab Navigation - LEFT side */}
+          <nav className="flex gap-1 bg-white/[0.03] rounded-2xl p-1 order-2">
             {tabs.map((tab) => (
               <motion.button
                 key={tab.id}
@@ -102,7 +104,7 @@ export default function Header({ activeTab, setActiveTab, totalNutrition, profil
           >
             <div className="bg-gradient-to-r from-primary-500/5 via-emerald-500/5 to-amber-500/5 rounded-2xl p-2.5 border border-white/[0.04]">
               <div className="flex items-center justify-between gap-2 flex-wrap">
-                {/* Left: Goal + Calories */}
+                {/* Left side: Goal + Calories */}
                 <div className="flex items-center gap-3">
                   {profile && (
                     <div className="flex items-center gap-1 text-[9px] text-white/30 bg-white/[0.03] px-2 py-0.5 rounded-full">
@@ -124,7 +126,7 @@ export default function Header({ activeTab, setActiveTab, totalNutrition, profil
                   </div>
                 </div>
 
-                {/* Macro Stats */}
+                {/* Right side: Macro Stats */}
                 <div className="flex items-center gap-2 flex-wrap">
                   {/* Protein */}
                   <div className="flex items-center gap-1">
