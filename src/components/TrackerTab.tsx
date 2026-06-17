@@ -359,7 +359,7 @@ export default function TrackerTab({
         )}
       </motion.div>
 
-      {/* ===== قسم "أكلت اليوم" الجديد ===== */}
+      {/* ===== قسم "أكلت اليوم" ===== */}
       {(eatenMeals.length > 0 || eatenExtras.length > 0) && (
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -389,7 +389,6 @@ export default function TrackerTab({
           </div>
 
           <div className="space-y-2">
-            {/* الوجبات المأكولة */}
             {eatenMeals.map((meal, idx) => (
               <motion.div
                 key={`meal-${meal.mealId}`}
@@ -417,7 +416,6 @@ export default function TrackerTab({
               </motion.div>
             ))}
 
-            {/* الأكلات الإضافية المأكولة */}
             {eatenExtras.map((food, idx) => {
               const mealTypeEmojis: Record<ExtraMealType, string> = {
                 'وجبة رئيسية': '🍽️',
@@ -462,7 +460,6 @@ export default function TrackerTab({
               );
             })}
 
-            {/* إجمالي المأكولات اليوم */}
             <div className="mt-3 pt-3 border-t border-white/[0.05]">
               <div className="flex items-center justify-between text-xs">
                 <span className="text-white/20">📊 إجمالي ما أكلت اليوم</span>

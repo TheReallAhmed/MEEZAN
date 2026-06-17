@@ -337,6 +337,8 @@ export default function App() {
           setActiveTab={setActiveTab} 
           totalNutrition={total}
           profile={profile}
+          todayTotal={todayTotal}
+          todayCount={todayMeals.length + todayExtras.length}
         />
 
         <main className="max-w-4xl mx-auto px-4 py-6 pb-20">

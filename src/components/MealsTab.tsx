@@ -240,7 +240,6 @@ export default function MealsTab({
         </div>
       </motion.div>
 
-      {/* Header */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -252,7 +251,6 @@ export default function MealsTab({
         </h2>
       </motion.div>
 
-      {/* Meals list */}
       <AnimatePresence>
         {meals.map((meal, i) => {
           const isExpanded = expandedId === meal.id;
@@ -381,7 +379,6 @@ export default function MealsTab({
                       })}
 
                       <div className="flex gap-2 mt-4 flex-wrap">
-                        {/* Checkbox for marking as eaten */}
                         <motion.button
                           whileHover={{ scale: 1.03 }}
                           whileTap={{ scale: 0.97 }}

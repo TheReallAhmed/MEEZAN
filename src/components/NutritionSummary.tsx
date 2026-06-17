@@ -53,7 +53,6 @@ export default function NutritionSummary({ total, entryCount, profile, extraTota
   const hasExtras = extraTotal && extraCount && extraCount > 0;
   const hasToday = todayTotal && todayCount && todayCount > 0;
 
-  // دمج الإجمالي مع الإضافات والوجبات المأكولة
   let combinedTotal = { ...total };
   
   if (hasExtras) {
@@ -72,7 +71,6 @@ export default function NutritionSummary({ total, entryCount, profile, extraTota
     };
   }
 
-  // إضافة الوجبات المأكولة للتوتال (لأنها فعلاً أكلت)
   if (hasToday) {
     combinedTotal = {
       calories: combinedTotal.calories + todayTotal.calories,
@@ -172,7 +170,6 @@ export default function NutritionSummary({ total, entryCount, profile, extraTota
       transition={{ type: 'spring', bounce: 0.2 }}
       className="space-y-4"
     >
-      {/* Extra foods summary */}
       {hasExtras && (
         <motion.div
           initial={{ opacity: 0 }}
@@ -184,7 +181,6 @@ export default function NutritionSummary({ total, entryCount, profile, extraTota
         </motion.div>
       )}
 
-      {/* Today eaten summary */}
       {hasToday && (
         <motion.div
           initial={{ opacity: 0 }}
@@ -196,7 +192,6 @@ export default function NutritionSummary({ total, entryCount, profile, extraTota
         </motion.div>
       )}
 
-      {/* Target header if profile exists */}
       {hasProfile && (
         <motion.div
           initial={{ opacity: 0 }}
@@ -208,7 +203,6 @@ export default function NutritionSummary({ total, entryCount, profile, extraTota
         </motion.div>
       )}
 
-      {/* Main macros */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {mainNutrients.map((n, i) => {
           const value = combinedTotal[n.key];
@@ -274,7 +268,6 @@ export default function NutritionSummary({ total, entryCount, profile, extraTota
         })}
       </div>
 
-      {/* Remaining summary if profile exists */}
       {hasProfile && (
         <motion.div
           initial={{ opacity: 0 }}
@@ -315,7 +308,6 @@ export default function NutritionSummary({ total, entryCount, profile, extraTota
         </motion.div>
       )}
 
-      {/* Secondary nutrients */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -359,7 +351,6 @@ export default function NutritionSummary({ total, entryCount, profile, extraTota
         </div>
       </motion.div>
 
-      {/* Weight badge */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
