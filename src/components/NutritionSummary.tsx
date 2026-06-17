@@ -7,6 +7,8 @@ interface NutritionSummaryProps {
   total: NutritionValues;
   entryCount: number;
   profile: UserProfile | null;
+  extraTotal?: NutritionValues;
+  extraCount?: number;
 }
 
 interface NutrientInfo {
@@ -42,12 +44,28 @@ function AnimatedNumber({ value }: { value: number }) {
   return <>{Math.round(display * 10) / 10}</>;
 }
 
-export default function NutritionSummary({ total, entryCount, profile }: NutritionSummaryProps) {
-  if (entryCount === 0) return null;
+export default function NutritionSummary({ total, entryCount, profile, extraTotal, extraCount }: NutritionSummaryProps) {
+  if (entryCount === 0 && (!extraCount || extraCount === 0)) return null;
 
   const hasProfile = !!profile;
+  const hasExtras = extraTotal && extraCount && extraCount > 0;
 
-  // تعريف الأهداف - الكارب زائد للمصريين 🇪🇬
+  // دمج الإجمالي مع الإضافات
+  const combinedTotal = hasExtras ? {
+    calories: total.calories + extraTotal.calories,
+    protein: total.protein + extraTotal.protein,
+    carbs: total.carbs + extraTotal.carbs,
+    fat: total.fat + extraTotal.fat,
+    fiber: total.fiber + extraTotal.fiber,
+    sugar: total.sugar + extraTotal.sugar,
+    sodium: total.sodium + extraTotal.sodium,
+    iron: total.iron + extraTotal.iron,
+    calcium: total.calcium + extraTotal.calcium,
+    vitaminC: total.vitaminC + extraTotal.vitaminC,
+    grams: total.grams + extraTotal.grams,
+  } : total;
+
+  // تعريف الأهداف
   const getTargets = () => {
     if (profile) {
       return {
@@ -57,11 +75,10 @@ export default function NutritionSummary({ total, entryCount, profile }: Nutriti
         fat: profile.targetFat || 65,
       };
     }
-    // الأهداف الافتراضية للمصريين (كارب أعلى)
     return {
       calories: 2000,
       protein: 50,
-      carbs: 380, // زيادة الكارب لأن الأكل المصري غني بالعيش والأرز والفول
+      carbs: 380,
       fat: 60,
     };
   };
@@ -120,13 +137,10 @@ export default function NutritionSummary({ total, entryCount, profile }: Nutriti
     { key: 'vitaminC', label: 'فيتامين C', unit: 'mg', gradient: 'from-yellow-400 to-orange-400', textColor: 'text-yellow-400', bgColor: 'from-yellow-500/10 to-orange-500/5', dailyTarget: 90, emoji: '🍊' },
   ];
 
-  // باقي الكود كما هو...
-  // بعدين الأجزاء اللي بتحسب المتبقي تستخدم targets بدل الأرقام الثابتة
-
-  const remainingCalories = targets.calories - total.calories;
-  const remainingProtein = targets.protein - total.protein;
-  const remainingCarbs = targets.carbs - total.carbs;
-  const remainingFat = targets.fat - total.fat;
+  const remainingCalories = targets.calories - combinedTotal.calories;
+  const remainingProtein = targets.protein - combinedTotal.protein;
+  const remainingCarbs = targets.carbs - combinedTotal.carbs;
+  const remainingFat = targets.fat - combinedTotal.fat;
 
   return (
     <motion.div
@@ -135,6 +149,18 @@ export default function NutritionSummary({ total, entryCount, profile }: Nutriti
       transition={{ type: 'spring', bounce: 0.2 }}
       className="space-y-4"
     >
+      {/* Extra foods summary */}
+      {hasExtras && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="text-center text-xs text-amber-400/60 bg-amber-500/10 rounded-xl py-2 px-4 border border-amber-500/15"
+        >
+          📊 إضافات اليوم: <span className="font-bold">{Math.round(extraTotal.calories)}</span> سعرة 
+          ({extraCount} أكلات) — 💪 {extraTotal.protein}g | 🌾 {extraTotal.carbs}g | 🧈 {extraTotal.fat}g
+        </motion.div>
+      )}
+
       {/* Target header if profile exists */}
       {hasProfile && (
         <motion.div
@@ -150,7 +176,7 @@ export default function NutritionSummary({ total, entryCount, profile }: Nutriti
       {/* Main macros */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {mainNutrients.map((n, i) => {
-          const value = total[n.key];
+          const value = combinedTotal[n.key];
           const percent = Math.min((value / n.dailyTarget) * 100, 100);
           const remaining = n.dailyTarget - value;
           const isComplete = percent >= 100;
@@ -265,7 +291,7 @@ export default function NutritionSummary({ total, entryCount, profile }: Nutriti
         <h4 className="text-white/25 text-xs font-semibold text-right mb-4">📊 تفاصيل إضافية</h4>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
           {secondaryNutrients.map((n, i) => {
-            const value = total[n.key];
+            const value = combinedTotal[n.key];
             const percent = Math.min((value / n.dailyTarget) * 100, 100);
             return (
               <motion.div
@@ -307,7 +333,7 @@ export default function NutritionSummary({ total, entryCount, profile }: Nutriti
         className="text-center"
       >
         <span className="inline-flex items-center gap-1.5 text-white/15 text-xs bg-white/[0.02] px-4 py-1.5 rounded-full">
-          ⚖️ الوزن الإجمالي: {Math.round(total.grams)} غرام
+          ⚖️ الوزن الإجمالي: {Math.round(combinedTotal.grams)} غرام
         </span>
       </motion.div>
     </motion.div>

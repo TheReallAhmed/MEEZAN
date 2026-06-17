@@ -6,7 +6,7 @@ import { sumNutrition } from './components/TrackerTab';
 import ProfileTab from './components/ProfileTab';
 import MealsTab from './components/MealsTab';
 import TelegramTab from './components/TelegramTab';
-import type { TabType, SavedMeal, FoodEntry, UserProfile } from './types';
+import type { TabType, SavedMeal, FoodEntry, UserProfile, DailyExtraFood } from './types';
 import { unitLabels } from './data/foodDatabase';
 
 function loadFromLS<T>(key: string, fallback: T): T {
@@ -28,6 +28,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<TabType>('tracker');
   const [entries, setEntries] = useState<FoodEntry[]>([]);
   const [meals, setMeals] = useState<SavedMeal[]>(() => loadFromLS('mizan_meals', []));
+  const [extraFoods, setExtraFoods] = useState<DailyExtraFood[]>(() => loadFromLS('mizan_extra_foods', []));
   const [profile, setProfile] = useState<UserProfile | null>(() => loadFromLS('mizan_profile', null));
   const [botToken, setBotToken] = useState(() => loadFromLS('mizan_bot_token', ''));
   const [chatId, setChatId] = useState(() => loadFromLS('mizan_chat_id', ''));
@@ -37,6 +38,7 @@ export default function App() {
 
   // Persist
   useEffect(() => { saveToLS('mizan_meals', meals); }, [meals]);
+  useEffect(() => { saveToLS('mizan_extra_foods', extraFoods); }, [extraFoods]);
   useEffect(() => { saveToLS('mizan_profile', profile); }, [profile]);
   useEffect(() => { saveToLS('mizan_bot_token', botToken); }, [botToken]);
   useEffect(() => { saveToLS('mizan_chat_id', chatId); }, [chatId]);
@@ -53,6 +55,15 @@ export default function App() {
   function handleDeleteMeal(id: string) {
     setMeals((prev) => prev.filter((m) => m.id !== id));
     showToast('🗑️ تم حذف الوجبة');
+  }
+
+  function handleAddExtraFood(food: DailyExtraFood) {
+    setExtraFoods(prev => [food, ...prev]);
+    showToast('✅ تم إضافة الأكل إلى قائمة اليوم!');
+  }
+
+  function handleRemoveExtraFood(id: string) {
+    setExtraFoods(prev => prev.filter(f => f.id !== id));
   }
 
   function handleSaveProfile(newProfile: UserProfile) {
@@ -216,8 +227,8 @@ export default function App() {
             key={i}
             className="particle"
             style={{
-              width: `${2 + Math.random() * 4}px`,
-              height: `${2 + Math.random() * 4}px`,
+              width: `${2 + Math.random() 4}px`,
+              height: `${2 + Math.random() 4}px`,
               left: `${Math.random() * 100}%`,
               bottom: '-10px',
               background: i % 3 === 0 
@@ -255,6 +266,9 @@ export default function App() {
                   entries={entries} 
                   setEntries={setEntries}
                   profile={profile}
+                  extraFoods={extraFoods}
+                  onAddExtraFood={handleAddExtraFood}
+                  onRemoveExtraFood={handleRemoveExtraFood}
                 />
               </motion.div>
             )}
