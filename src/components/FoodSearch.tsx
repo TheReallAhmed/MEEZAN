@@ -23,6 +23,18 @@ const egyptianQuickAdds = [
   { id: 'umm_ali', name: 'أم علي' },
 ];
 
+// الأكلات الفلسطينية الشائعة للـ Quick Add
+const palestinianQuickAdds = [
+  { id: 'musakhan', name: 'مسخن' },
+  { id: 'maqluba_palestinian', name: 'مقلوبة' },
+  { id: 'mansaf_palestinian', name: 'منسف' },
+  { id: 'knafeh_nabulsi', name: 'كنافة نابلسية' },
+  { id: 'hummus_palestinian', name: 'حمص فلسطيني' },
+  { id: 'falafel_palestinian', name: 'فلافل فلسطيني' },
+  { id: 'maamoul_palestinian', name: 'معمول' },
+  { id: 'zaatar_bread_palestinian', name: 'خبز زعتر' },
+];
+
 interface FoodSearchProps {
   onAddEntry: (entry: FoodEntry) => void;
 }
@@ -103,7 +115,8 @@ export default function FoodSearch({ onAddEntry }: FoodSearchProps) {
 
   // جلب الإيموجي للتصنيف
   function getCategoryEmoji(categoryId: string): string {
-    return categories.find((c) => c.id === categoryId)?.emoji || '🍽️';
+    const cat = categories.find((c) => c.id === categoryId);
+    return cat?.emoji || '🍽️';
   }
 
   return (
@@ -120,8 +133,8 @@ export default function FoodSearch({ onAddEntry }: FoodSearchProps) {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onFocus={() => query.length > 0 && setShowResults(true)}
-            placeholder="🔍 ابحث عن طعام... بندورة، دجاج، كشري، فول..."
-            className="w-full pr-12 pl-4 py-4 rounded-2xl text-right text-base"
+            placeholder="🔍 ابحث عن طعام... بندورة، دجاج، كشري، مسخن..."
+            className="w-full pr-12 pl-4 py-4 rounded-2xl text-right text-base bg-white/5 border border-white/10 focus:border-primary-500/50 outline-none transition-all"
             dir="rtl"
           />
           <div className="absolute inset-0 rounded-2xl pointer-events-none neon-border opacity-0 group-focus-within:opacity-100 transition-opacity" />
@@ -170,7 +183,7 @@ export default function FoodSearch({ onAddEntry }: FoodSearchProps) {
               className="absolute z-40 w-full mt-2 rounded-2xl glass-strong p-6 text-center"
             >
               <p className="text-white/30 text-sm">لم يتم العثور على نتائج 😕</p>
-              <p className="text-white/10 text-xs mt-1">جرب تكتب 'كشري' أو 'فول' أو 'عدس'</p>
+              <p className="text-white/10 text-xs mt-1">جرب تكتب 'مسخن' أو 'مقلوبة' أو 'كنافة'</p>
             </motion.div>
           )}
         </AnimatePresence>
@@ -197,6 +210,27 @@ export default function FoodSearch({ onAddEntry }: FoodSearchProps) {
         </div>
       </div>
 
+      {/* Quick Add - Palestinian Favorites 🇵🇸 */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <p className="text-white/20 text-xs">🇵🇸 أكلات فلسطينية سريعة</p>
+          <TrendingUp size={14} className="text-emerald-400/40" />
+        </div>
+        <div className="flex flex-wrap gap-1.5 justify-end">
+          {palestinianQuickAdds.map((item) => (
+            <motion.button
+              key={item.id}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => quickAddFood(item.id)}
+              className="px-3 py-1.5 rounded-xl text-xs bg-emerald-500/10 text-emerald-300/70 hover:bg-emerald-500/20 hover:text-emerald-300 border border-emerald-500/10 hover:border-emerald-500/20 transition-all"
+            >
+              {item.name}
+            </motion.button>
+          ))}
+        </div>
+      </div>
+
       {/* Category Browse */}
       <div className="space-y-3">
         <p className="text-white/25 text-xs text-right font-medium">أو تصفح حسب الفئة</p>
@@ -215,8 +249,8 @@ export default function FoodSearch({ onAddEntry }: FoodSearchProps) {
               }`}
             >
               <ChevronDown size={10} className={`transition-transform duration-300 ${showCategory === cat.id ? 'rotate-180' : ''}`} />
-              <span>{cat.name}</span>
               <span>{cat.emoji}</span>
+              <span>{cat.name}</span>
             </motion.button>
           ))}
         </div>
@@ -285,7 +319,7 @@ export default function FoodSearch({ onAddEntry }: FoodSearchProps) {
                   onChange={(e) => setQuantity(Math.max(0, parseFloat(e.target.value) || 0))}
                   min="0"
                   step="0.5"
-                  className="w-full px-4 py-3 rounded-xl text-center text-lg font-bold"
+                  className="w-full px-4 py-3 rounded-xl text-center text-lg font-bold bg-white/5 border border-white/10 focus:border-primary-500/50 outline-none transition-all"
                 />
               </div>
               <div className="flex-1">
@@ -293,7 +327,7 @@ export default function FoodSearch({ onAddEntry }: FoodSearchProps) {
                 <select
                   value={unit}
                   onChange={(e) => setUnit(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl text-center appearance-none cursor-pointer font-medium"
+                  className="w-full px-4 py-3 rounded-xl text-center appearance-none cursor-pointer font-medium bg-white/5 border border-white/10 focus:border-primary-500/50 outline-none transition-all"
                   dir="rtl"
                 >
                   {selectedFood.availableUnits.map((u) => (
