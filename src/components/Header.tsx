@@ -57,25 +57,10 @@ export default function Header({ activeTab, setActiveTab, totalNutrition, profil
   return (
     <header className="sticky top-0 z-50 glass border-b border-white/[0.05]">
       <div className="max-w-4xl mx-auto px-4">
-        {/* الصف العلوي: اللوجو باليمين والتابز بالشمال */}
+        {/* ===== الصف العلوي: اللوجو باليمين والتابز بالشمال ===== */}
         <div className="flex items-center justify-between py-2">
-          {/* ===== اللوجو والاسم - الجانب الأيمن ===== */}
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="flex items-center gap-2"
-          >
-            <span className="text-2xl">⚖️</span>
-            <div>
-              <h1 className="text-base font-bold bg-gradient-to-r from-primary-400 to-emerald-400 bg-clip-text text-transparent">
-                مِيزان
-              </h1>
-              <p className="text-[8px] text-white/25 font-medium">حاسبة التغذية الذكية</p>
-            </div>
-          </motion.div>
-
-          {/* ===== التابز - الجانب الأيسر ===== */}
-          <nav className="flex gap-0.5 bg-white/[0.04] rounded-2xl p-0.5">
+          {/* ===== التابز - الجانب الأيسر (الشمال) ===== */}
+          <nav className="flex gap-0.5 bg-white/[0.04] rounded-2xl p-0.5 order-1">
             {tabs.map((tab) => (
               <motion.button
                 key={tab.id}
@@ -93,6 +78,21 @@ export default function Header({ activeTab, setActiveTab, totalNutrition, profil
               </motion.button>
             ))}
           </nav>
+
+          {/* ===== اللوجو والاسم - الجانب الأيمن ===== */}
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="flex items-center gap-2 order-2"
+          >
+            <span className="text-2xl">⚖️</span>
+            <div>
+              <h1 className="text-base font-bold bg-gradient-to-r from-primary-400 to-emerald-400 bg-clip-text text-transparent">
+                مِيزان
+              </h1>
+              <p className="text-[8px] text-white/25 font-medium">حاسبة التغذية الذكية</p>
+            </div>
+          </motion.div>
         </div>
 
         {/* ===== شريط الإحصائيات ===== */}
