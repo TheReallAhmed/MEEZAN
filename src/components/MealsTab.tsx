@@ -244,10 +244,6 @@ export default function MealsTab({ meals, onDeleteMeal, onSendToTelegram, telegr
         animate={{ opacity: 1 }}
         className="flex items-center justify-between"
       >
-        <div className="flex items-center gap-2 text-white/20 text-[10px]">
-          <ChefHat size={14} />
-          <span>🇪🇬 أكلات مصرية مميزة</span>
-        </div>
         <h2 className="text-sm font-bold text-white/60 flex items-center gap-2">
           <UtensilsCrossed size={14} className="text-primary-400" />
           الوجبات المحفوظة
