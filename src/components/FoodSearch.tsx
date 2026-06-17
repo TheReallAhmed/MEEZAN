@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Plus, X, ChevronDown, Sparkles } from 'lucide-react';
+import { Search, Plus, X, ChevronDown, Sparkles, TrendingUp } from 'lucide-react';
 import {
   searchFood,
   calculateNutrition,
@@ -10,6 +10,18 @@ import {
   type FoodItem,
 } from '../data/foodDatabase';
 import type { FoodEntry } from '../types';
+
+// الأكلات المصرية الشائعة للـ Quick Add
+const egyptianQuickAdds = [
+  { id: 'baladi_bread', name: 'عيش بلدي' },
+  { id: 'tameya', name: 'طعمية' },
+  { id: 'fava_beans', name: 'فول مدمس' },
+  { id: 'koshary', name: 'كشري' },
+  { id: 'molokhiya', name: 'ملوخية' },
+  { id: 'lentils_cooked', name: 'عدس مطبوخ' },
+  { id: 'baleela', name: 'بليلة' },
+  { id: 'umm_ali', name: 'أم علي' },
+];
 
 interface FoodSearchProps {
   onAddEntry: (entry: FoodEntry) => void;
@@ -63,6 +75,7 @@ export default function FoodSearch({ onAddEntry }: FoodSearchProps) {
       foodId: selectedFood.id,
       foodName: selectedFood.name,
       foodNameAr: selectedFood.nameAr,
+      category: selectedFood.category,
       quantity,
       unit,
       nutrition,
@@ -81,7 +94,17 @@ export default function FoodSearch({ onAddEntry }: FoodSearchProps) {
     return foodDatabase.filter((f) => f.category === categoryId);
   }
 
+  function quickAddFood(foodId: string) {
+    const food = foodDatabase.find((f) => f.id === foodId);
+    if (food) selectFood(food);
+  }
+
   const preview = selectedFood ? calculateNutrition(selectedFood, quantity, unit) : null;
+
+  // جلب الإيموجي للتصنيف
+  function getCategoryEmoji(categoryId: string): string {
+    return categories.find((c) => c.id === categoryId)?.emoji || '🍽️';
+  }
 
   return (
     <div className="space-y-5">
@@ -97,11 +120,10 @@ export default function FoodSearch({ onAddEntry }: FoodSearchProps) {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onFocus={() => query.length > 0 && setShowResults(true)}
-            placeholder="🔍 ابحث عن طعام... بندورة، دجاج، أرز..."
+            placeholder="🔍 ابحث عن طعام... بندورة، دجاج، كشري، فول..."
             className="w-full pr-12 pl-4 py-4 rounded-2xl text-right text-base"
             dir="rtl"
           />
-          {/* Animated border glow */}
           <div className="absolute inset-0 rounded-2xl pointer-events-none neon-border opacity-0 group-focus-within:opacity-100 transition-opacity" />
         </div>
 
@@ -116,7 +138,7 @@ export default function FoodSearch({ onAddEntry }: FoodSearchProps) {
               className="absolute z-40 w-full mt-2 rounded-2xl glass-strong overflow-hidden max-h-80 overflow-y-auto custom-scroll shadow-2xl shadow-black/30"
             >
               {results.map((food, i) => {
-                const cat = categories.find((c) => c.id === food.category);
+                const emoji = getCategoryEmoji(food.category);
                 return (
                   <motion.button
                     key={food.id}
@@ -133,7 +155,7 @@ export default function FoodSearch({ onAddEntry }: FoodSearchProps) {
                       <span className="text-white/80 font-medium group-hover:text-white transition-colors">
                         {food.nameAr}
                       </span>
-                      <span className="text-lg">{cat?.emoji}</span>
+                      <span className="text-lg">{emoji}</span>
                     </span>
                   </motion.button>
                 );
@@ -148,9 +170,31 @@ export default function FoodSearch({ onAddEntry }: FoodSearchProps) {
               className="absolute z-40 w-full mt-2 rounded-2xl glass-strong p-6 text-center"
             >
               <p className="text-white/30 text-sm">لم يتم العثور على نتائج 😕</p>
+              <p className="text-white/10 text-xs mt-1">جرب تكتب 'كشري' أو 'فول' أو 'عدس'</p>
             </motion.div>
           )}
         </AnimatePresence>
+      </div>
+
+      {/* Quick Add - Egyptian Favorites */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <p className="text-white/20 text-xs">🇪🇬 أكلات مصرية سريعة</p>
+          <TrendingUp size={14} className="text-primary-400/40" />
+        </div>
+        <div className="flex flex-wrap gap-1.5 justify-end">
+          {egyptianQuickAdds.map((item) => (
+            <motion.button
+              key={item.id}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => quickAddFood(item.id)}
+              className="px-3 py-1.5 rounded-xl text-xs bg-primary-500/10 text-primary-300/70 hover:bg-primary-500/20 hover:text-primary-300 border border-primary-500/10 hover:border-primary-500/20 transition-all"
+            >
+              {item.name}
+            </motion.button>
+          ))}
+        </div>
       </div>
 
       {/* Category Browse */}
@@ -195,8 +239,9 @@ export default function FoodSearch({ onAddEntry }: FoodSearchProps) {
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: i * 0.02 }}
                     onClick={() => selectFood(food)}
-                    className="glass-card rounded-xl px-3 py-2.5 text-right text-xs text-white/50 hover:text-white"
+                    className="glass-card rounded-xl px-3 py-2.5 text-right text-xs text-white/50 hover:text-white transition-all hover:bg-white/[0.05]"
                   >
+                    <span className="ml-1.5">{getCategoryEmoji(food.category)}</span>
                     {food.nameAr}
                   </motion.button>
                 ))}
@@ -225,7 +270,7 @@ export default function FoodSearch({ onAddEntry }: FoodSearchProps) {
               </button>
               <div className="text-right">
                 <h3 className="text-lg font-bold text-white">
-                  {selectedFood.nameAr}
+                  {getCategoryEmoji(selectedFood.category)} {selectedFood.nameAr}
                 </h3>
                 <p className="text-xs text-white/25 mt-0.5">{selectedFood.name}</p>
               </div>
@@ -285,6 +330,11 @@ export default function FoodSearch({ onAddEntry }: FoodSearchProps) {
                 ))}
               </motion.div>
             )}
+
+            {/* Display total grams */}
+            <div className="text-center text-xs text-white/20">
+              الوزن التقريبي: {preview?.grams || 0} غرام
+            </div>
 
             <motion.button
               onClick={handleAdd}

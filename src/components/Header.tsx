@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Utensils, Send, Flame, User, TrendingUp } from 'lucide-react';
+import { Utensils, Send, Flame, User, TrendingUp, Award, Target } from 'lucide-react';
 import type { TabType, UserProfile, NutritionValues } from '../types';
 
 interface HeaderProps {
@@ -16,23 +16,57 @@ const tabs: { id: TabType; label: string; labelShort: string; icon: React.ReactN
   { id: 'telegram', label: 'تيليغرام', labelShort: 'إرسال', icon: <Send size={16} /> },
 ];
 
+// دالة لجلب النصيحة حسب النسبة المئوية
+function getAdvice(percent: number, label: string): string {
+  if (percent >= 100) return `✅ ممتاز! ${label} مكتمل`;
+  if (percent >= 75) return `👍 قريب جداً، كمل ${label}`;
+  if (percent >= 50) return `💪 نص الطريق، استمر`;
+  if (percent >= 25) return `📈 بداية جيدة، زود ${label}`;
+  return `🌱 ابدأ بإضافة ${label}`;
+}
+
+// دالة لجلب لون النسبة المئوية
+function getPercentColor(percent: number): string {
+  if (percent >= 100) return 'from-green-500 to-emerald-400';
+  if (percent >= 75) return 'from-blue-500 to-cyan-400';
+  if (percent >= 50) return 'from-amber-500 to-orange-400';
+  if (percent >= 25) return 'from-orange-500 to-red-500';
+  return 'from-red-500 to-rose-600';
+}
+
+// دالة لجلب النصيحة حسب الهدف
+function getGoalEmoji(goal: string): string {
+  switch (goal) {
+    case 'bulk': return '💪 تضخيم';
+    case 'cut': return '🔥 تنشيف';
+    case 'maintain': return '⚖️ تثبيت';
+    default: return '🎯 تتبع';
+  }
+}
+
+// الأكلات المصرية الأكثر شيوعاً لعرضها في الـ Header
+const egyptianFoods = ['عيش بلدي', 'فول مدمس', 'طعمية', 'كشري', 'ملوخية'];
+
 export default function Header({ activeTab, setActiveTab, totalNutrition, profile }: HeaderProps) {
   const hasProfile = !!profile;
-  const calories = totalNutrition.calories;
+  const calories = totalNutrition.calories || 0;
   const targetCalories = profile?.targetCalories || 2000;
   const caloriePercent = Math.min((calories / targetCalories) * 100, 100);
 
-  const protein = totalNutrition.protein;
+  const protein = totalNutrition.protein || 0;
   const targetProtein = profile?.targetProtein || 50;
   const proteinPercent = Math.min((protein / targetProtein) * 100, 100);
 
-  const carbs = totalNutrition.carbs;
+  const carbs = totalNutrition.carbs || 0;
   const targetCarbs = profile?.targetCarbs || 300;
   const carbsPercent = Math.min((carbs / targetCarbs) * 100, 100);
 
-  const fat = totalNutrition.fat;
+  const fat = totalNutrition.fat || 0;
   const targetFat = profile?.targetFat || 65;
   const fatPercent = Math.min((fat / targetFat) * 100, 100);
+
+  // حساب مجموع السعرات المتبقية
+  const remainingCalories = Math.max(targetCalories - calories, 0);
 
   return (
     <header className="glass-strong sticky top-0 z-50">
@@ -77,7 +111,10 @@ export default function Header({ activeTab, setActiveTab, totalNutrition, profil
               className="flex items-center gap-3"
             >
               <div className="text-right">
-                <h1 className="text-xl font-black gradient-text tracking-tight">مِيزان</h1>
+                <div className="flex items-center gap-1.5 justify-end">
+                  <h1 className="text-xl font-black gradient-text tracking-tight">مِيزان</h1>
+                  <span className="text-sm">🇪🇬</span>
+                </div>
                 <p className="text-[9px] text-white/20 -mt-0.5 font-medium">حاسبة التغذية الذكية</p>
               </div>
               <motion.div
@@ -93,26 +130,40 @@ export default function Header({ activeTab, setActiveTab, totalNutrition, profil
             </motion.div>
           </div>
 
-          {/* Progress tracking bar - show when profile exists */}
-          {hasProfile && calories > 0 && (
+          {/* Quick Stats - show when profile exists */}
+          {hasProfile && (
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               className="bg-gradient-to-r from-white/[0.02] to-white/[0.01] rounded-2xl p-3 border border-white/[0.04]"
             >
+              {/* Top row: goal + progress summary */}
               <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-1.5 text-[10px] text-white/30">
-                  <TrendingUp size={10} />
-                  <span>تقدمك اليوم</span>
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5 text-[10px] text-white/30">
+                    <Target size={10} />
+                    <span>{getGoalEmoji(profile.goal || 'maintain')}</span>
+                  </div>
+                  {calories > 0 && (
+                    <div className="flex items-center gap-1.5 text-[10px]">
+                      <span className="text-white/30">متبقي:</span>
+                      <span className={`font-bold ${remainingCalories > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                        {Math.round(remainingCalories)}
+                      </span>
+                      <span className="text-white/20 text-[8px]">سعرة</span>
+                    </div>
+                  )}
                 </div>
-                <div className="text-[10px] text-white/20">
-                  {profile.goal === 'bulk' ? '💪 تضخيم' : profile.goal === 'cut' ? '🔥 تنشيف' : '⚖️ تثبيت'}
+                <div className="flex items-center gap-1 text-[9px] text-white/20">
+                  <Award size={10} className="text-primary-400/50" />
+                  <span>أكلات مصرية: {egyptianFoods.join('، ')}</span>
                 </div>
               </div>
 
+              {/* Progress bars - 4 columns */}
               <div className="grid grid-cols-4 gap-2">
                 {/* Calories */}
-                <div className="relative">
+                <div className="relative group">
                   <div className="flex items-center justify-between mb-1">
                     <span className={`text-[10px] font-bold ${caloriePercent >= 100 ? 'text-green-400' : 'text-orange-400'}`}>
                       {Math.round(calories)}
@@ -124,15 +175,20 @@ export default function Header({ activeTab, setActiveTab, totalNutrition, profil
                       initial={{ width: 0 }}
                       animate={{ width: `${caloriePercent}%` }}
                       transition={{ duration: 1, ease: 'easeOut' }}
-                      className={`h-full rounded-full ${caloriePercent >= 100 ? 'bg-gradient-to-r from-green-500 to-emerald-400' : 'bg-gradient-to-r from-orange-500 to-red-500'}`}
-                      style={{ boxShadow: caloriePercent >= 100 ? '0 0 10px rgba(16, 185, 129, 0.5)' : '0 0 10px rgba(249, 115, 22, 0.5)' }}
+                      className={`h-full rounded-full bg-gradient-to-r ${getPercentColor(caloriePercent)}`}
+                      style={{ boxShadow: `0 0 10px rgba(${caloriePercent >= 100 ? '16, 185, 129' : '249, 115, 22'}, 0.5)` }}
                     />
                   </div>
-                  <div className="text-[8px] text-white/15 text-center mt-0.5">{targetCalories}</div>
+                  <div className="flex justify-between text-[8px] text-white/15 mt-0.5">
+                    <span>{targetCalories}</span>
+                    <span className="opacity-0 group-hover:opacity-100 transition-opacity">
+                      {getAdvice(caloriePercent, 'السعرات')}
+                    </span>
+                  </div>
                 </div>
 
                 {/* Protein */}
-                <div className="relative">
+                <div className="relative group">
                   <div className="flex items-center justify-between mb-1">
                     <span className={`text-[10px] font-bold ${proteinPercent >= 100 ? 'text-green-400' : 'text-blue-400'}`}>
                       {Math.round(protein)}g
@@ -144,15 +200,20 @@ export default function Header({ activeTab, setActiveTab, totalNutrition, profil
                       initial={{ width: 0 }}
                       animate={{ width: `${proteinPercent}%` }}
                       transition={{ duration: 1, delay: 0.1, ease: 'easeOut' }}
-                      className={`h-full rounded-full ${proteinPercent >= 100 ? 'bg-gradient-to-r from-green-500 to-emerald-400' : 'bg-gradient-to-r from-blue-500 to-cyan-400'}`}
-                      style={{ boxShadow: proteinPercent >= 100 ? '0 0 10px rgba(16, 185, 129, 0.5)' : '0 0 10px rgba(14, 165, 233, 0.5)' }}
+                      className={`h-full rounded-full bg-gradient-to-r ${getPercentColor(proteinPercent)}`}
+                      style={{ boxShadow: `0 0 10px rgba(${proteinPercent >= 100 ? '16, 185, 129' : '14, 165, 233'}, 0.5)` }}
                     />
                   </div>
-                  <div className="text-[8px] text-white/15 text-center mt-0.5">{targetProtein}g</div>
+                  <div className="flex justify-between text-[8px] text-white/15 mt-0.5">
+                    <span>{targetProtein}g</span>
+                    <span className="opacity-0 group-hover:opacity-100 transition-opacity">
+                      {getAdvice(proteinPercent, 'البروتين')}
+                    </span>
+                  </div>
                 </div>
 
-                {/* Carbs */}
-                <div className="relative">
+                {/* Carbs - مهم جداً للمصريين */}
+                <div className="relative group">
                   <div className="flex items-center justify-between mb-1">
                     <span className={`text-[10px] font-bold ${carbsPercent >= 100 ? 'text-green-400' : 'text-amber-400'}`}>
                       {Math.round(carbs)}g
@@ -164,15 +225,20 @@ export default function Header({ activeTab, setActiveTab, totalNutrition, profil
                       initial={{ width: 0 }}
                       animate={{ width: `${carbsPercent}%` }}
                       transition={{ duration: 1, delay: 0.2, ease: 'easeOut' }}
-                      className={`h-full rounded-full ${carbsPercent >= 100 ? 'bg-gradient-to-r from-green-500 to-emerald-400' : 'bg-gradient-to-r from-amber-500 to-yellow-400'}`}
-                      style={{ boxShadow: carbsPercent >= 100 ? '0 0 10px rgba(16, 185, 129, 0.5)' : '0 0 10px rgba(245, 158, 11, 0.5)' }}
+                      className={`h-full rounded-full bg-gradient-to-r ${getPercentColor(carbsPercent)}`}
+                      style={{ boxShadow: `0 0 10px rgba(${carbsPercent >= 100 ? '16, 185, 129' : '245, 158, 11'}, 0.5)` }}
                     />
                   </div>
-                  <div className="text-[8px] text-white/15 text-center mt-0.5">{targetCarbs}g</div>
+                  <div className="flex justify-between text-[8px] text-white/15 mt-0.5">
+                    <span>{targetCarbs}g</span>
+                    <span className="opacity-0 group-hover:opacity-100 transition-opacity">
+                      {getAdvice(carbsPercent, 'الكارب')}
+                    </span>
+                  </div>
                 </div>
 
                 {/* Fat */}
-                <div className="relative">
+                <div className="relative group">
                   <div className="flex items-center justify-between mb-1">
                     <span className={`text-[10px] font-bold ${fatPercent >= 100 ? 'text-green-400' : 'text-pink-400'}`}>
                       {Math.round(fat)}g
@@ -184,13 +250,34 @@ export default function Header({ activeTab, setActiveTab, totalNutrition, profil
                       initial={{ width: 0 }}
                       animate={{ width: `${fatPercent}%` }}
                       transition={{ duration: 1, delay: 0.3, ease: 'easeOut' }}
-                      className={`h-full rounded-full ${fatPercent >= 100 ? 'bg-gradient-to-r from-green-500 to-emerald-400' : 'bg-gradient-to-r from-pink-500 to-rose-400'}`}
-                      style={{ boxShadow: fatPercent >= 100 ? '0 0 10px rgba(16, 185, 129, 0.5)' : '0 0 10px rgba(236, 72, 153, 0.5)' }}
+                      className={`h-full rounded-full bg-gradient-to-r ${getPercentColor(fatPercent)}`}
+                      style={{ boxShadow: `0 0 10px rgba(${fatPercent >= 100 ? '16, 185, 129' : '236, 72, 153'}, 0.5)` }}
                     />
                   </div>
-                  <div className="text-[8px] text-white/15 text-center mt-0.5">{targetFat}g</div>
+                  <div className="flex justify-between text-[8px] text-white/15 mt-0.5">
+                    <span>{targetFat}g</span>
+                    <span className="opacity-0 group-hover:opacity-100 transition-opacity">
+                      {getAdvice(fatPercent, 'الدهون')}
+                    </span>
+                  </div>
                 </div>
               </div>
+
+              {/* Bottom row: motivational message based on progress */}
+              {calories > 0 && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="mt-2 text-center"
+                >
+                  <span className="text-[9px] text-white/20">
+                    {caloriePercent >= 100 ? '🎉 أحسنت! أكملت احتياجك اليومي من السعرات' :
+                     caloriePercent >= 75 ? '💪 طريقك للصحة، استمر!' :
+                     caloriePercent >= 50 ? '🌿 نص الطريق، كمل خير!' :
+                     '🌱 ابدأ يومك بصحة، أضف وجبتك القادمة'}
+                  </span>
+                </motion.div>
+              )}
             </motion.div>
           )}
         </div>

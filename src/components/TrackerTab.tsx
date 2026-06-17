@@ -18,6 +18,14 @@ const emptyNutrition: NutritionValues = {
   sugar: 0, sodium: 0, iron: 0, calcium: 0, vitaminC: 0, grams: 0,
 };
 
+// الأكلات المصرية للتعرف عليها 🇪🇬
+const EGYPTIAN_FOODS = [
+  'عيش بلدي', 'طعمية', 'فلافل', 'فول مدمس', 'عدس مطبوخ', 'كشري', 'ملوخية',
+  'بامية', 'محشي', 'ورق عنب', 'دوالي', 'مسقعة', 'بابا غنوج', 'حمص',
+  'كنافة', 'بليلة', 'أم علي', 'رز بلبن', 'سحلب', 'فطير مشلتت', 'حواوشي',
+  'أرز بالشعيرية', 'شوربة عدس', 'سمك بلطي'
+];
+
 function sumNutrition(entries: FoodEntry[]): NutritionValues {
   return entries.reduce(
     (acc, e) => ({
@@ -46,6 +54,34 @@ export default function TrackerTab({ onSaveMeal, entries, setEntries, profile }:
 
   const total = sumNutrition(entries);
 
+  // التحقق إذا كانت الوجبة مصرية
+  function isEgyptianMeal(entries: FoodEntry[]): boolean {
+    return entries.some(entry => 
+      EGYPTIAN_FOODS.some(food => 
+        entry.foodNameAr.includes(food) || entry.foodName.includes(food)
+      )
+    );
+  }
+
+  // اقتراح اسم وجبة مصري
+  function suggestEgyptianMealName(entries: FoodEntry[]): string {
+    const egyptianItems = entries.filter(entry =>
+      EGYPTIAN_FOODS.some(food => 
+        entry.foodNameAr.includes(food) || entry.foodName.includes(food)
+      )
+    );
+    
+    if (egyptianItems.length === 0) return 'وجبة جديدة';
+    
+    const names = egyptianItems.map(e => e.foodNameAr);
+    if (names.includes('فول مدمس') && names.includes('طعمية')) return 'وجبة فول وطعمية';
+    if (names.includes('كشري')) return 'وجبة كشري';
+    if (names.includes('ملوخية')) return 'وجبة ملوخية';
+    if (names.includes('عدس مطبوخ')) return 'شوربة عدس';
+    if (names.includes('عيش بلدي')) return 'ساندويتش عيش بلدي';
+    return `${names[0]} و ${names.slice(1, 3).join(' و ')}`;
+  }
+
   function addEntry(entry: FoodEntry) {
     setEntries((prev) => [...prev, entry]);
   }
@@ -60,9 +96,13 @@ export default function TrackerTab({ onSaveMeal, entries, setEntries, profile }:
 
   function handleSaveMeal() {
     if (!mealName.trim() || entries.length === 0) return;
+    
+    // إذا كانت الوجبة مصرية ولم يحدد المستخدم اسم، نقترح اسم
+    const finalName = mealName.trim();
+    
     const meal: SavedMeal = {
       id: Date.now().toString() + Math.random().toString(36).slice(2),
-      name: mealName.trim(),
+      name: finalName,
       entries: [...entries],
       totalNutrition: total,
       createdAt: new Date().toISOString(),
@@ -72,6 +112,17 @@ export default function TrackerTab({ onSaveMeal, entries, setEntries, profile }:
     setMealName('');
     setSaved(true);
     setTimeout(() => setSaved(false), 2500);
+  }
+
+  // فتح نافذة الحفظ مع اقتراح اسم
+  function openSaveDialog() {
+    if (entries.length === 0) return;
+    
+    // اقتراح اسم تلقائي للوجبات المصرية
+    if (isEgyptianMeal(entries) && !mealName) {
+      setMealName(suggestEgyptianMealName(entries));
+    }
+    setShowSaveDialog(true);
   }
 
   return (
@@ -85,7 +136,7 @@ export default function TrackerTab({ onSaveMeal, entries, setEntries, profile }:
       >
         <h2 className="text-base font-bold text-white/80 text-right mb-5 flex items-center justify-end gap-2">
           <Sparkles size={16} className="text-primary-400" />
-          ابحث وأضف طعامك
+          ابحث وأضف طعامك {isEgyptianMeal(entries) && '🇪🇬'}
         </h2>
         <FoodSearch onAddEntry={addEntry} />
       </motion.div>
@@ -112,11 +163,11 @@ export default function TrackerTab({ onSaveMeal, entries, setEntries, profile }:
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={() => setShowSaveDialog(true)}
+                onClick={openSaveDialog}
                 className="btn-glow text-xs flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-white font-medium"
               >
                 <Save size={13} />
-                حفظ كوجبة
+                حفظ كوجبة {isEgyptianMeal(entries) && '🇪🇬'}
               </motion.button>
             </div>
           )}
@@ -126,6 +177,11 @@ export default function TrackerTab({ onSaveMeal, entries, setEntries, profile }:
             {entries.length > 0 && (
               <span className="text-xs text-white/20 bg-white/5 px-2 py-0.5 rounded-full font-normal">
                 {entries.length}
+              </span>
+            )}
+            {isEgyptianMeal(entries) && (
+              <span className="text-xs text-amber-400/30 bg-amber-500/5 px-2 py-0.5 rounded-full font-normal">
+                🇪🇬
               </span>
             )}
           </h2>
@@ -152,15 +208,25 @@ export default function TrackerTab({ onSaveMeal, entries, setEntries, profile }:
               onClick={(e) => e.stopPropagation()}
             >
               <div className="text-center">
-                <div className="text-4xl mb-2">🍱</div>
-                <h3 className="text-lg font-bold text-white">حفظ كوجبة</h3>
-                <p className="text-xs text-white/25 mt-1">{entries.length} عنصر — {Math.round(total.calories)} سعرة</p>
+                <div className="text-4xl mb-2">{isEgyptianMeal(entries) ? '🇪🇬' : '🍱'}</div>
+                <h3 className="text-lg font-bold text-white">
+                  حفظ كوجبة {isEgyptianMeal(entries) && 'مصرية'}
+                </h3>
+                <p className="text-xs text-white/25 mt-1">
+                  {entries.length} عنصر — {Math.round(total.calories)} سعرة
+                  {isEgyptianMeal(entries) && ' 🧆'}
+                </p>
+                {isEgyptianMeal(entries) && (
+                  <p className="text-[10px] text-amber-400/20 mt-1">
+                    تحتوي على أكلات مصرية تقليدية
+                  </p>
+                )}
               </div>
               <input
                 type="text"
                 value={mealName}
                 onChange={(e) => setMealName(e.target.value)}
-                placeholder="اسم الوجبة (مثلاً: فطور صباحي)"
+                placeholder={isEgyptianMeal(entries) ? 'اسم الوجبة المصرية...' : 'اسم الوجبة...'}
                 className="w-full px-5 py-3.5 rounded-2xl text-right text-base"
                 dir="rtl"
                 autoFocus
@@ -180,7 +246,7 @@ export default function TrackerTab({ onSaveMeal, entries, setEntries, profile }:
                   disabled={!mealName.trim()}
                   className="flex-1 btn-success py-3 rounded-2xl text-white font-bold disabled:opacity-30"
                 >
-                  حفظ ✓
+                  حفظ ✓ {isEgyptianMeal(entries) && '🇪🇬'}
                 </motion.button>
               </div>
             </motion.div>
@@ -197,7 +263,7 @@ export default function TrackerTab({ onSaveMeal, entries, setEntries, profile }:
             exit={{ opacity: 0, y: 50, scale: 0.9 }}
             className="fixed bottom-20 left-1/2 -translate-x-1/2 bg-gradient-to-r from-emerald-600 to-emerald-500 text-white px-8 py-3.5 rounded-2xl shadow-2xl shadow-emerald-500/30 font-bold z-50 text-sm"
           >
-            ✅ تم حفظ الوجبة بنجاح!
+            ✅ تم حفظ الوجبة {isEgyptianMeal(entries) ? 'المصرية' : ''} بنجاح! {isEgyptianMeal(entries) && '🇪🇬'}
           </motion.div>
         )}
       </AnimatePresence>

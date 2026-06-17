@@ -8,6 +8,25 @@ interface FoodListProps {
   onRemoveEntry: (id: string) => void;
 }
 
+// إيموجيات حسب التصنيف
+const categoryEmojis: Record<string, string> = {
+  vegetables: '🥦',
+  fruits: '🍎',
+  grains: '🌾',
+  protein: '🥩',
+  seafood: '🐟',
+  dairy: '🥛',
+  oils: '🫒',
+  nuts: '🥜',
+  legumes: '🫘',
+  beverages: '☕',
+  sweets: '🍰',
+  snacks: '🍿',
+  sauces: '🥫',
+  prepared: '🍲',
+  supplements: '💊',
+};
+
 export default function FoodList({ entries, onRemoveEntry }: FoodListProps) {
   if (entries.length === 0) {
     return (
@@ -32,59 +51,72 @@ export default function FoodList({ entries, onRemoveEntry }: FoodListProps) {
   return (
     <div className="space-y-2">
       <AnimatePresence mode="popLayout">
-        {entries.map((entry, index) => (
-          <motion.div
-            key={entry.id}
-            layout
-            initial={{ opacity: 0, x: 60, scale: 0.9 }}
-            animate={{ opacity: 1, x: 0, scale: 1 }}
-            exit={{ opacity: 0, x: -60, scale: 0.8, filter: 'blur(4px)' }}
-            transition={{ type: 'spring', bounce: 0.2, delay: index * 0.03 }}
-            className="group relative bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.04] hover:border-white/[0.08] rounded-2xl p-3.5 flex items-center gap-3 transition-all duration-300"
-          >
-            {/* Drag handle hint */}
-            <div className="text-white/[0.06] group-hover:text-white/10 transition-colors">
-              <GripVertical size={14} />
-            </div>
-
-            {/* Delete */}
-            <motion.button
-              whileHover={{ scale: 1.15 }}
-              whileTap={{ scale: 0.9 }}
-              onClick={() => onRemoveEntry(entry.id)}
-              className="text-white/10 hover:text-red-400 transition-all p-1.5 rounded-lg hover:bg-red-500/10 shrink-0"
+        {entries.map((entry, index) => {
+          // جلب الإيموجي حسب التصنيف
+          const emoji = categoryEmojis[entry.category] || '🍽️';
+          
+          return (
+            <motion.div
+              key={entry.id}
+              layout
+              initial={{ opacity: 0, x: 60, scale: 0.9 }}
+              animate={{ opacity: 1, x: 0, scale: 1 }}
+              exit={{ opacity: 0, x: -60, scale: 0.8, filter: 'blur(4px)' }}
+              transition={{ type: 'spring', bounce: 0.2, delay: index * 0.03 }}
+              className="group relative bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.04] hover:border-white/[0.08] rounded-2xl p-3.5 flex items-center gap-3 transition-all duration-300"
             >
-              <Trash2 size={15} />
-            </motion.button>
-
-            {/* Nutrition pills */}
-            <div className="flex-1 flex flex-wrap gap-1.5 items-center">
-              <span className="text-[10px] text-orange-400/70 bg-orange-400/10 px-2 py-0.5 rounded-full font-medium">
-                {entry.nutrition.calories} cal
-              </span>
-              <span className="text-[10px] text-blue-400/70 bg-blue-400/10 px-2 py-0.5 rounded-full font-medium">
-                {entry.nutrition.protein}g P
-              </span>
-              <span className="text-[10px] text-amber-400/70 bg-amber-400/10 px-2 py-0.5 rounded-full font-medium hidden sm:inline-block">
-                {entry.nutrition.carbs}g C
-              </span>
-              <span className="text-[10px] text-pink-400/70 bg-pink-400/10 px-2 py-0.5 rounded-full font-medium hidden sm:inline-block">
-                {entry.nutrition.fat}g F
-              </span>
-            </div>
-
-            {/* Food name */}
-            <div className="text-right shrink-0">
-              <div className="text-white/80 font-semibold text-sm">{entry.foodNameAr}</div>
-              <div className="text-white/20 text-xs mt-0.5 font-medium">
-                {entry.quantity} {unitLabels[entry.unit] || entry.unit}
+              {/* Drag handle hint */}
+              <div className="text-white/[0.06] group-hover:text-white/10 transition-colors">
+                <GripVertical size={14} />
               </div>
-            </div>
 
-            {/* Accent line */}
-            <div className="absolute right-0 top-2 bottom-2 w-0.5 rounded-full bg-gradient-to-b from-primary-500/30 to-emerald-500/30" />
-          </motion.div>
-        ))}
+              {/* Delete button */}
+              <motion.button
+                whileHover={{ scale: 1.15 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={() => onRemoveEntry(entry.id)}
+                className="text-white/10 hover:text-red-400 transition-all p-1.5 rounded-lg hover:bg-red-500/10 shrink-0"
+              >
+                <Trash2 size={15} />
+              </motion.button>
+
+              {/* Nutrition pills */}
+              <div className="flex-1 flex flex-wrap gap-1.5 items-center">
+                <span className="text-[10px] text-orange-400/70 bg-orange-400/10 px-2 py-0.5 rounded-full font-medium">
+                  {entry.nutrition.calories} cal
+                </span>
+                <span className="text-[10px] text-blue-400/70 bg-blue-400/10 px-2 py-0.5 rounded-full font-medium">
+                  {entry.nutrition.protein}g P
+                </span>
+                <span className="text-[10px] text-amber-400/70 bg-amber-400/10 px-2 py-0.5 rounded-full font-medium hidden sm:inline-block">
+                  {entry.nutrition.carbs}g C
+                </span>
+                <span className="text-[10px] text-pink-400/70 bg-pink-400/10 px-2 py-0.5 rounded-full font-medium hidden sm:inline-block">
+                  {entry.nutrition.fat}g F
+                </span>
+                {/* عرض الألياف اختياري */}
+                {entry.nutrition.fiber > 0 && (
+                  <span className="text-[10px] text-green-400/70 bg-green-400/10 px-2 py-0.5 rounded-full font-medium hidden md:inline-block">
+                    {entry.nutrition.fiber}g Fib
+                  </span>
+                )}
+              </div>
+
+              {/* Food name with emoji */}
+              <div className="text-right shrink-0">
+                <div className="text-white/80 font-semibold text-sm">
+                  {emoji} {entry.foodNameAr || entry.foodName || 'طعام'}
+                </div>
+                <div className="text-white/20 text-xs mt-0.5 font-medium">
+                  {entry.quantity} {unitLabels[entry.unit] || entry.unit}
+                </div>
+              </div>
+
+              {/* Accent line */}
+              <div className="absolute right-0 top-2 bottom-2 w-0.5 rounded-full bg-gradient-to-b from-primary-500/30 to-emerald-500/30" />
+            </motion.div>
+          );
+        })}
       </AnimatePresence>
     </div>
   );

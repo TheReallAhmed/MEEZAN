@@ -181,6 +181,8 @@ export const foodDatabase: FoodItem[] = [
   { id: 'granola', name: 'Granola', nameAr: 'جرانولا', category: 'grains', defaultUnit: 'cup', availableUnits: ['cup', 'gram'], nutritionPer100g: { calories: 489, protein: 15, carbs: 64, fat: 20, fiber: 7, sugar: 22, sodium: 26, iron: 3.5, calcium: 76, vitaminC: 0 } },
   { id: 'vermicelli', name: 'Vermicelli', nameAr: 'شعيرية', category: 'grains', defaultUnit: 'gram', availableUnits: ['gram', 'cup'], nutritionPer100g: { calories: 357, protein: 12, carbs: 74, fat: 1, fiber: 2.3, sugar: 2, sodium: 7, iron: 3.1, calcium: 16, vitaminC: 0 } },
   { id: 'maftoul', name: 'Maftoul', nameAr: 'مفتول', category: 'grains', defaultUnit: 'cup', availableUnits: ['cup', 'gram'], nutritionPer100g: { calories: 360, protein: 12, carbs: 74, fat: 1.5, fiber: 4, sugar: 0, sodium: 10, iron: 2.5, calcium: 20, vitaminC: 0 } },
+  // Egyptian Baladi Bread
+  { id: 'baladi_bread', name: 'Baladi Bread', nameAr: 'عيش بلدي / تموين', category: 'grains', defaultUnit: 'piece', availableUnits: ['piece', 'gram'], nutritionPer100g: { calories: 250, protein: 9, carbs: 50, fat: 1.5, fiber: 6, sugar: 2, sodium: 400, iron: 3, calcium: 50, vitaminC: 0 }, pieceWeightG: 100 },
 
   // ╔══════════════════════════════════════════════╗
   // ║        🥩 بروتينات ولحوم                      ║
@@ -283,9 +285,12 @@ export const foodDatabase: FoodItem[] = [
   { id: 'chickpeas_raw', name: 'Chickpeas (raw)', nameAr: 'حمص حب (جاف)', category: 'legumes', defaultUnit: 'cup', availableUnits: ['cup', 'gram'], nutritionPer100g: { calories: 364, protein: 19, carbs: 61, fat: 6, fiber: 17, sugar: 11, sodium: 24, iron: 6.2, calcium: 105, vitaminC: 4 } },
   { id: 'chickpeas_cooked', name: 'Chickpeas (cooked)', nameAr: 'حمص حب (مطبوخ)', category: 'legumes', defaultUnit: 'cup', availableUnits: ['cup', 'gram'], nutritionPer100g: { calories: 164, protein: 9, carbs: 27, fat: 2.6, fiber: 8, sugar: 4.8, sodium: 7, iron: 2.9, calcium: 49, vitaminC: 1.3 } },
   { id: 'lentils_raw', name: 'Lentils (raw)', nameAr: 'عدس (جاف)', category: 'legumes', defaultUnit: 'cup', availableUnits: ['cup', 'gram'], nutritionPer100g: { calories: 352, protein: 25, carbs: 60, fat: 1.1, fiber: 31, sugar: 2, sodium: 6, iron: 6.5, calcium: 35, vitaminC: 4.5 } },
-  { id: 'lentils_cooked', name: 'Lentils (cooked)', nameAr: 'عدس (مطبوخ)', category: 'legumes', defaultUnit: 'cup', availableUnits: ['cup', 'gram'], nutritionPer100g: { calories: 116, protein: 9, carbs: 20, fat: 0.4, fiber: 8, sugar: 1.8, sodium: 2, iron: 3.3, calcium: 19, vitaminC: 1.5 } },
+  // Updated lentils_cooked to include bowl and tbsp for Egyptian usage
+  { id: 'lentils_cooked', name: 'Lentils (cooked)', nameAr: 'عدس (مطبوخ)', category: 'legumes', defaultUnit: 'cup', availableUnits: ['cup', 'gram', 'bowl', 'tbsp'], nutritionPer100g: { calories: 116, protein: 9, carbs: 20, fat: 0.4, fiber: 8, sugar: 1.8, sodium: 2, iron: 3.3, calcium: 19, vitaminC: 1.5 } },
   { id: 'fava_beans', name: 'Fava Beans (Foul)', nameAr: 'فول مدمس', category: 'legumes', defaultUnit: 'cup', availableUnits: ['cup', 'gram'], nutritionPer100g: { calories: 110, protein: 8, carbs: 19, fat: 0.4, fiber: 5, sugar: 1.8, sodium: 5, iron: 1.5, calcium: 36, vitaminC: 0.3 } },
   { id: 'falafel', name: 'Falafel', nameAr: 'فلافل', category: 'legumes', defaultUnit: 'piece', availableUnits: ['piece', 'gram'], nutritionPer100g: { calories: 333, protein: 13, carbs: 32, fat: 18, fiber: 5, sugar: 0, sodium: 294, iron: 3.4, calcium: 54, vitaminC: 4 }, pieceWeightG: 17 },
+  // Ta'meya – Egyptian falafel (fava bean based)
+  { id: 'tameya', name: "Ta'meya", nameAr: 'طعمية', category: 'legumes', defaultUnit: 'piece', availableUnits: ['piece', 'gram'], nutritionPer100g: { calories: 330, protein: 13, carbs: 32, fat: 18, fiber: 5, sugar: 0, sodium: 300, iron: 3.4, calcium: 54, vitaminC: 4 }, pieceWeightG: 20 },
   { id: 'kidney_beans_cooked', name: 'Kidney Beans (cooked)', nameAr: 'فاصوليا حمراء (مطبوخة)', category: 'legumes', defaultUnit: 'cup', availableUnits: ['cup', 'gram'], nutritionPer100g: { calories: 127, protein: 9, carbs: 23, fat: 0.5, fiber: 6.4, sugar: 2, sodium: 2, iron: 2.9, calcium: 28, vitaminC: 1.2 } },
   { id: 'black_beans', name: 'Black Beans (cooked)', nameAr: 'فاصوليا سوداء (مطبوخة)', category: 'legumes', defaultUnit: 'cup', availableUnits: ['cup', 'gram'], nutritionPer100g: { calories: 132, protein: 9, carbs: 24, fat: 0.5, fiber: 8.7, sugar: 0.3, sodium: 1, iron: 2.1, calcium: 27, vitaminC: 0 } },
   { id: 'white_beans_cooked', name: 'White Beans (cooked)', nameAr: 'فاصوليا بيضاء (مطبوخة)', category: 'legumes', defaultUnit: 'cup', availableUnits: ['cup', 'gram'], nutritionPer100g: { calories: 139, protein: 10, carbs: 25, fat: 0.4, fiber: 6.3, sugar: 0.3, sodium: 6, iron: 3.7, calcium: 90, vitaminC: 0 } },
@@ -309,6 +314,7 @@ export const foodDatabase: FoodItem[] = [
   { id: 'cola_diet', name: 'Diet Cola', nameAr: 'كولا دايت', category: 'beverages', defaultUnit: 'can', availableUnits: ['can', 'ml'], nutritionPer100g: { calories: 0.4, protein: 0, carbs: 0, fat: 0, fiber: 0, sugar: 0, sodium: 6, iron: 0, calcium: 1, vitaminC: 0 } },
   { id: 'energy_drink', name: 'Energy Drink', nameAr: 'مشروب طاقة', category: 'beverages', defaultUnit: 'can', availableUnits: ['can', 'ml'], nutritionPer100g: { calories: 45, protein: 0.3, carbs: 11, fat: 0, fiber: 0, sugar: 11, sodium: 40, iron: 0, calcium: 4, vitaminC: 0 } },
   { id: 'coconut_water', name: 'Coconut Water', nameAr: 'ماء جوز الهند', category: 'beverages', defaultUnit: 'cup', availableUnits: ['cup', 'ml'], nutritionPer100g: { calories: 19, protein: 0.7, carbs: 3.7, fat: 0.2, fiber: 1.1, sugar: 2.6, sodium: 105, iron: 0.3, calcium: 24, vitaminC: 2.4 } },
+  { id: 'sahlab', name: 'Sahlab', nameAr: 'سحلب', category: 'beverages', defaultUnit: 'cup', availableUnits: ['cup', 'ml', 'gram'], nutritionPer100g: { calories: 110, protein: 3, carbs: 20, fat: 2, fiber: 1, sugar: 12, sodium: 50, iron: 0.5, calcium: 100, vitaminC: 0 } },
 
   // ╔══════════════════════════════════════════════╗
   // ║          🍰 حلويات وسكريات                     ║
@@ -331,6 +337,12 @@ export const foodDatabase: FoodItem[] = [
   { id: 'ice_cream', name: 'Ice Cream', nameAr: 'آيس كريم / بوظة', category: 'sweets', defaultUnit: 'cup', availableUnits: ['cup', 'gram', 'scoop'], nutritionPer100g: { calories: 207, protein: 3.5, carbs: 24, fat: 11, fiber: 0.7, sugar: 21, sodium: 80, iron: 0.1, calcium: 128, vitaminC: 0.6 } },
   { id: 'maamoul', name: 'Maamoul', nameAr: 'معمول', category: 'sweets', defaultUnit: 'piece', availableUnits: ['piece', 'gram'], nutritionPer100g: { calories: 450, protein: 6, carbs: 55, fat: 24, fiber: 2, sugar: 25, sodium: 100, iron: 1.5, calcium: 30, vitaminC: 0 }, pieceWeightG: 40 },
   { id: 'qatayef', name: 'Qatayef', nameAr: 'قطايف', category: 'sweets', defaultUnit: 'piece', availableUnits: ['piece', 'gram'], nutritionPer100g: { calories: 380, protein: 7, carbs: 45, fat: 20, fiber: 1.5, sugar: 22, sodium: 180, iron: 1, calcium: 50, vitaminC: 0 }, pieceWeightG: 70 },
+  // Baleela (Egyptian wheat berry dessert)
+  { id: 'baleela', name: 'Baleela', nameAr: 'بليلة', category: 'sweets', defaultUnit: 'gram', availableUnits: ['gram', 'cup', 'tbsp'], nutritionPer100g: { calories: 180, protein: 5, carbs: 30, fat: 5, fiber: 3, sugar: 12, sodium: 20, iron: 1, calcium: 50, vitaminC: 0 } },
+  // Umm Ali
+  { id: 'umm_ali', name: "Umm Ali", nameAr: 'أم علي', category: 'sweets', defaultUnit: 'bowl', availableUnits: ['bowl', 'gram'], nutritionPer100g: { calories: 250, protein: 6, carbs: 30, fat: 12, fiber: 1, sugar: 18, sodium: 100, iron: 1, calcium: 100, vitaminC: 0 } },
+  // Roz bil Laban (Rice Pudding)
+  { id: 'roz_bil_laban', name: 'Rice Pudding', nameAr: 'رز بلبن', category: 'sweets', defaultUnit: 'bowl', availableUnits: ['bowl', 'gram', 'cup'], nutritionPer100g: { calories: 130, protein: 3, carbs: 22, fat: 3, fiber: 0.5, sugar: 12, sodium: 50, iron: 0.5, calcium: 80, vitaminC: 0 } },
 
   // ╔══════════════════════════════════════════════╗
   // ║          🍿 وجبات خفيفة                       ║
@@ -380,6 +392,20 @@ export const foodDatabase: FoodItem[] = [
   { id: 'shakshuka', name: 'Shakshuka', nameAr: 'شكشوكة', category: 'prepared', defaultUnit: 'bowl', availableUnits: ['bowl', 'gram'], nutritionPer100g: { calories: 100, protein: 6, carbs: 5, fat: 6.5, fiber: 1.2, sugar: 3.5, sodium: 350, iron: 1.5, calcium: 40, vitaminC: 15 } },
   { id: 'lentil_soup', name: 'Lentil Soup', nameAr: 'شوربة عدس', category: 'prepared', defaultUnit: 'bowl', availableUnits: ['bowl', 'cup', 'gram'], nutritionPer100g: { calories: 56, protein: 3.5, carbs: 9, fat: 0.7, fiber: 3.5, sugar: 1, sodium: 300, iron: 1.5, calcium: 15, vitaminC: 2 } },
   { id: 'chicken_soup', name: 'Chicken Soup', nameAr: 'شوربة دجاج', category: 'prepared', defaultUnit: 'bowl', availableUnits: ['bowl', 'cup', 'gram'], nutritionPer100g: { calories: 36, protein: 3.3, carbs: 2, fat: 1.5, fiber: 0.3, sugar: 0.5, sodium: 340, iron: 0.3, calcium: 8, vitaminC: 0.5 } },
+  // Koshary - Egyptian national dish
+  { id: 'koshary', name: 'Koshary', nameAr: 'كشري', category: 'prepared', defaultUnit: 'bowl', availableUnits: ['bowl', 'gram'], nutritionPer100g: { calories: 190, protein: 7, carbs: 32, fat: 4.5, fiber: 4, sugar: 3, sodium: 350, iron: 2.5, calcium: 30, vitaminC: 3 } },
+  // Molokhiya
+  { id: 'molokhiya', name: 'Molokhiya', nameAr: 'ملوخية', category: 'prepared', defaultUnit: 'bowl', availableUnits: ['bowl', 'gram'], nutritionPer100g: { calories: 65, protein: 4, carbs: 8, fat: 2, fiber: 3, sugar: 1, sodium: 280, iron: 3.5, calcium: 120, vitaminC: 15 } },
+  // Mahshi (Stuffed Vegetables)
+  { id: 'mahshi', name: 'Mahshi (Stuffed Vegetables)', nameAr: 'محشي (ورق عنب / كوسا / باذنجان)', category: 'prepared', defaultUnit: 'piece', availableUnits: ['piece', 'gram'], nutritionPer100g: { calories: 120, protein: 3, carbs: 18, fat: 4, fiber: 3, sugar: 2, sodium: 350, iron: 1.2, calcium: 40, vitaminC: 5 }, pieceWeightG: 80 },
+  // Hawawshi
+  { id: 'hawawshi', name: 'Hawawshi', nameAr: 'حواوشي', category: 'prepared', defaultUnit: 'piece', availableUnits: ['piece', 'gram'], nutritionPer100g: { calories: 280, protein: 14, carbs: 25, fat: 14, fiber: 2, sugar: 2, sodium: 450, iron: 2.5, calcium: 35, vitaminC: 2 }, pieceWeightG: 150 },
+  // Feteer Meshaltet
+  { id: 'feteer', name: 'Feteer Meshaltet', nameAr: 'فطير مشلتت', category: 'prepared', defaultUnit: 'piece', availableUnits: ['piece', 'gram'], nutritionPer100g: { calories: 350, protein: 8, carbs: 38, fat: 18, fiber: 1.5, sugar: 3, sodium: 380, iron: 2, calcium: 30, vitaminC: 0 }, pieceWeightG: 120 },
+  // Egyptian Rice with Noodles (Roz ma'a Sha'reyya)
+  { id: 'rice_noodles', name: 'Rice with Vermicelli', nameAr: 'أرز بالشعيرية', category: 'prepared', defaultUnit: 'bowl', availableUnits: ['bowl', 'gram', 'cup'], nutritionPer100g: { calories: 160, protein: 3, carbs: 28, fat: 4, fiber: 1, sugar: 0.5, sodium: 200, iron: 0.8, calcium: 15, vitaminC: 0 } },
+  // Egyptian Lentil Soup (Shorbet Ads)
+  { id: 'shorbet_ads', name: 'Egyptian Lentil Soup', nameAr: 'شوربة عدس مصرية', category: 'prepared', defaultUnit: 'bowl', availableUnits: ['bowl', 'cup', 'gram'], nutritionPer100g: { calories: 70, protein: 4, carbs: 11, fat: 1, fiber: 4, sugar: 1.5, sodium: 320, iron: 2, calcium: 20, vitaminC: 3 } },
 
   // ╔══════════════════════════════════════════════╗
   // ║          💊 مكملات غذائية                      ║

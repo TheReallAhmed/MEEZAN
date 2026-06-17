@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Trash2, ChevronDown, Clock, Send, UtensilsCrossed, Calculator, Zap } from 'lucide-react';
+import { Trash2, ChevronDown, Clock, Send, UtensilsCrossed, Calculator, Zap, Star, Coffee, ChefHat } from 'lucide-react';
 import { unitLabels } from '../data/foodDatabase';
 import type { SavedMeal, NutritionValues } from '../types';
 
@@ -16,10 +16,40 @@ const emptyNutrition: NutritionValues = {
   sugar: 0, sodium: 0, iron: 0, calcium: 0, vitaminC: 0, grams: 0,
 };
 
+// الأكلات المصرية الشائعة للتعرف عليها
+const egyptianFoods = [
+  'عيش بلدي', 'طعمية', 'فلافل', 'فول مدمس', 'عدس', 'كشري', 'ملوخية',
+  'بامية', 'محشي', 'ورق عنب', 'دوالي', 'مسقعة', 'بابا غنوج', 'حمص',
+  'كنافة', 'بليلة', 'أم علي', 'رز بلبن', 'سحلب', 'فطير مشلتت', 'حواوشي'
+];
+
+// إيموجيات حسب نوع الوجبة
+const mealEmojis = {
+  breakfast: '🌅',
+  lunch: '☀️',
+  dinner: '🌙',
+  snack: '🍿',
+  dessert: '🍰',
+  egyptian: '🇪🇬',
+  international: '🌍',
+};
+
+// نصائح تغذوية مصرية
+const egyptianTips = [
+  '💡 الفول والطعمية غنيان بالبروتين النباتي، مثاليان لوجبة الفطور',
+  '🌾 الكشري وجبة متكاملة تحتوي على كاربوهيدرات وبروتين وألياف',
+  '🥬 الملوخية غنية بالحديد وفيتامين C، مفيدة للدم',
+  '🧄 الثوم والبصل في الأكل المصري يعززان المناعة',
+  '🌿 البقدونس والكزبرة غنيان بالحديد والفيتامينات',
+  '🍚 الأرز بالشعيرية وجبة أساسية في المطبخ المصري',
+  '🧆 الحمص والطعمية مصدر ممتاز للبروتين النباتي',
+  '🍲 الشوربة العدس غنية بالبروتين والألياف ومفيدة للجهاز الهضمي',
+];
+
 export default function MealsTab({ meals, onDeleteMeal, onSendToTelegram, telegramConfigured }: MealsTabProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  // Calculate total of ALL meals
+  // حساب إجمالي جميع الوجبات
   const totalAllMeals = useMemo(() => {
     return meals.reduce((acc, meal) => ({
       calories: Math.round((acc.calories + meal.totalNutrition.calories) * 10) / 10,
@@ -35,6 +65,48 @@ export default function MealsTab({ meals, onDeleteMeal, onSendToTelegram, telegr
       grams: Math.round((acc.grams + meal.totalNutrition.grams) * 10) / 10,
     }), { ...emptyNutrition });
   }, [meals]);
+
+  // التعرف على إذا كانت الوجبة مصرية
+  function isEgyptianMeal(meal: SavedMeal): boolean {
+    return meal.entries.some(entry => 
+      egyptianFoods.some(food => 
+        entry.foodNameAr.includes(food) || entry.foodName.includes(food)
+      )
+    );
+  }
+
+  // جلب إيموجي مناسب للوجبة
+  function getMealEmoji(meal: SavedMeal): string {
+    if (isEgyptianMeal(meal)) return '🇪🇬';
+    
+    // حسب وقت الوجبة
+    const hour = new Date(meal.createdAt).getHours();
+    if (hour >= 5 && hour < 11) return mealEmojis.breakfast;
+    if (hour >= 11 && hour < 16) return mealEmojis.lunch;
+    if (hour >= 16 && hour < 21) return mealEmojis.dinner;
+    return mealEmojis.snack;
+  }
+
+  // جلب نصيحة غذائية للوجبة
+  function getMealTip(meal: SavedMeal): string | null {
+    if (!isEgyptianMeal(meal)) return null;
+    
+    // اختيار نصيحة عشوائية
+    const tipIndex = meal.entries.reduce((acc, entry) => 
+      acc + entry.foodNameAr.length, 0
+    ) % egyptianTips.length;
+    
+    return egyptianTips[tipIndex];
+  }
+
+  // حساب عدد الأكلات المصرية في الوجبة
+  function countEgyptianItems(meal: SavedMeal): number {
+    return meal.entries.filter(entry =>
+      egyptianFoods.some(food => 
+        entry.foodNameAr.includes(food) || entry.foodName.includes(food)
+      )
+    ).length;
+  }
 
   function formatDate(iso: string) {
     const d = new Date(iso);
@@ -57,6 +129,7 @@ export default function MealsTab({ meals, onDeleteMeal, onSendToTelegram, telegr
         </motion.div>
         <h3 className="text-lg font-bold text-white/20 mb-2">لا توجد وجبات محفوظة</h3>
         <p className="text-white/10 text-sm">أضف أطعمة في الحاسبة واحفظها كوجبة</p>
+        <p className="text-white/5 text-xs mt-2">🇪🇬 جرب تحفظ كشري أو فول وطعمية</p>
       </motion.div>
     );
   }
@@ -79,6 +152,9 @@ export default function MealsTab({ meals, onDeleteMeal, onSendToTelegram, telegr
             <div className="flex items-center gap-2 text-white/30 text-xs bg-white/[0.03] px-3 py-1.5 rounded-full">
               <Calculator size={12} />
               <span>{meals.length} وجبة محفوظة</span>
+              {meals.some(m => isEgyptianMeal(m)) && (
+                <span className="mr-1 text-amber-400/50">🇪🇬</span>
+              )}
             </div>
             <h2 className="text-base font-bold text-white flex items-center gap-2">
               <Zap size={16} className="text-amber-400" />
@@ -166,8 +242,12 @@ export default function MealsTab({ meals, onDeleteMeal, onSendToTelegram, telegr
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="flex items-center justify-end"
+        className="flex items-center justify-between"
       >
+        <div className="flex items-center gap-2 text-white/20 text-[10px]">
+          <ChefHat size={14} />
+          <span>🇪🇬 أكلات مصرية مميزة</span>
+        </div>
         <h2 className="text-sm font-bold text-white/60 flex items-center gap-2">
           <UtensilsCrossed size={14} className="text-primary-400" />
           الوجبات المحفوظة
@@ -178,6 +258,11 @@ export default function MealsTab({ meals, onDeleteMeal, onSendToTelegram, telegr
       <AnimatePresence>
         {meals.map((meal, i) => {
           const isExpanded = expandedId === meal.id;
+          const isEgyptian = isEgyptianMeal(meal);
+          const egyptianCount = countEgyptianItems(meal);
+          const mealEmoji = getMealEmoji(meal);
+          const tip = getMealTip(meal);
+
           return (
             <motion.div
               key={meal.id}
@@ -185,7 +270,9 @@ export default function MealsTab({ meals, onDeleteMeal, onSendToTelegram, telegr
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, x: -100, scale: 0.9 }}
               transition={{ delay: i * 0.05 }}
-              className="glass-card rounded-3xl overflow-hidden"
+              className={`glass-card rounded-3xl overflow-hidden transition-all duration-300 ${
+                isEgyptian ? 'border-amber-500/20 border' : ''
+              }`}
             >
               <button
                 onClick={() => setExpandedId(isExpanded ? null : meal.id)}
@@ -200,13 +287,38 @@ export default function MealsTab({ meals, onDeleteMeal, onSendToTelegram, telegr
                 </motion.div>
 
                 <div className="flex-1 mr-3">
-                  <h3 className="text-white font-bold text-base">{meal.name}</h3>
-                  <div className="flex items-center justify-end gap-2 text-[10px] text-white/20 mt-1">
+                  <div className="flex items-center gap-2 justify-end">
+                    <span className="text-lg">{mealEmoji}</span>
+                    <h3 className="text-white font-bold text-base">
+                      {meal.name}
+                      {isEgyptian && (
+                        <span className="text-amber-400/50 text-xs mr-1.5">🇪🇬</span>
+                      )}
+                    </h3>
+                  </div>
+                  
+                  <div className="flex items-center justify-end gap-2 text-[10px] text-white/20 mt-1 flex-wrap">
                     <Clock size={10} />
                     <span>{formatDate(meal.createdAt)}</span>
                     <span>•</span>
                     <span>{meal.entries.length} عنصر</span>
+                    {isEgyptian && (
+                      <>
+                        <span>•</span>
+                        <span className="text-amber-400/30">{egyptianCount} أكلات مصرية</span>
+                      </>
+                    )}
                   </div>
+
+                  {tip && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="mt-2 text-[10px] text-amber-400/40 bg-amber-500/5 rounded-xl px-3 py-1.5 border border-amber-500/10"
+                    >
+                      {tip}
+                    </motion.div>
+                  )}
 
                   <div className="flex flex-wrap gap-1.5 justify-end mt-3">
                     <span className="text-[10px] bg-gradient-to-r from-orange-500/15 to-red-500/10 text-orange-400/90 px-2.5 py-1 rounded-full font-semibold border border-orange-500/20">
@@ -235,20 +347,30 @@ export default function MealsTab({ meals, onDeleteMeal, onSendToTelegram, telegr
                     className="overflow-hidden"
                   >
                     <div className="px-5 pb-5 space-y-3 border-t border-white/[0.03] pt-4">
-                      {meal.entries.map((entry, j) => (
-                        <motion.div
-                          key={entry.id}
-                          initial={{ opacity: 0, x: 20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: j * 0.03 }}
-                          className="flex items-center justify-between text-xs bg-white/[0.02] rounded-xl px-3 py-2.5 border border-white/[0.03]"
-                        >
-                          <span className="text-white/25 font-mono text-[10px]">{entry.nutrition.calories} cal</span>
-                          <span className="text-white/50 text-right text-[11px]">
-                            {entry.foodNameAr} — {entry.quantity} {unitLabels[entry.unit] || entry.unit}
-                          </span>
-                        </motion.div>
-                      ))}
+                      {meal.entries.map((entry, j) => {
+                        const isEgyptianFood = egyptianFoods.some(food => 
+                          entry.foodNameAr.includes(food) || entry.foodName.includes(food)
+                        );
+                        return (
+                          <motion.div
+                            key={entry.id}
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: j * 0.03 }}
+                            className={`flex items-center justify-between text-xs rounded-xl px-3 py-2.5 border ${
+                              isEgyptianFood 
+                                ? 'bg-amber-500/5 border-amber-500/15' 
+                                : 'bg-white/[0.02] border-white/[0.03]'
+                            }`}
+                          >
+                            <span className="text-white/25 font-mono text-[10px]">{entry.nutrition.calories} cal</span>
+                            <span className="text-white/50 text-right text-[11px] flex items-center gap-2">
+                              {isEgyptianFood && <span className="text-amber-400/30">🇪🇬</span>}
+                              {entry.foodNameAr} — {entry.quantity} {unitLabels[entry.unit] || entry.unit}
+                            </span>
+                          </motion.div>
+                        );
+                      })}
 
                       <div className="flex gap-2 mt-4">
                         <motion.button
@@ -272,6 +394,13 @@ export default function MealsTab({ meals, onDeleteMeal, onSendToTelegram, telegr
                           </motion.button>
                         )}
                       </div>
+
+                      {/* Egyptian meal badge */}
+                      {isEgyptian && (
+                        <div className="text-center text-[9px] text-amber-400/20 bg-amber-500/5 rounded-xl py-1.5 border border-amber-500/5">
+                          🧆 وجبة مصرية تحتوي على {egyptianCount} أكلات تقليدية
+                        </div>
+                      )}
                     </div>
                   </motion.div>
                 )}

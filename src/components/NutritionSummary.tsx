@@ -42,14 +42,32 @@ function AnimatedNumber({ value }: { value: number }) {
   return <>{Math.round(display * 10) / 10}</>;
 }
 
-
-
 export default function NutritionSummary({ total, entryCount, profile }: NutritionSummaryProps) {
   if (entryCount === 0) return null;
 
   const hasProfile = !!profile;
 
-  // Use profile targets if available, otherwise use default daily values
+  // تعريف الأهداف - الكارب زائد للمصريين 🇪🇬
+  const getTargets = () => {
+    if (profile) {
+      return {
+        calories: profile.targetCalories || 2000,
+        protein: profile.targetProtein || 50,
+        carbs: profile.targetCarbs || 300,
+        fat: profile.targetFat || 65,
+      };
+    }
+    // الأهداف الافتراضية للمصريين (كارب أعلى)
+    return {
+      calories: 2000,
+      protein: 50,
+      carbs: 380, // زيادة الكارب لأن الأكل المصري غني بالعيش والأرز والفول
+      fat: 60,
+    };
+  };
+
+  const targets = getTargets();
+
   const mainNutrients: NutrientInfo[] = [
     { 
       key: 'calories', 
@@ -58,7 +76,7 @@ export default function NutritionSummary({ total, entryCount, profile }: Nutriti
       gradient: 'from-orange-500 to-red-500', 
       textColor: 'text-orange-400', 
       bgColor: 'from-orange-500/15 to-red-500/5', 
-      dailyTarget: profile?.targetCalories || 2000, 
+      dailyTarget: targets.calories, 
       emoji: '🔥' 
     },
     { 
@@ -68,7 +86,7 @@ export default function NutritionSummary({ total, entryCount, profile }: Nutriti
       gradient: 'from-blue-500 to-cyan-500', 
       textColor: 'text-blue-400', 
       bgColor: 'from-blue-500/15 to-cyan-500/5', 
-      dailyTarget: profile?.targetProtein || 50, 
+      dailyTarget: targets.protein, 
       emoji: '💪' 
     },
     { 
@@ -78,7 +96,7 @@ export default function NutritionSummary({ total, entryCount, profile }: Nutriti
       gradient: 'from-amber-500 to-yellow-500', 
       textColor: 'text-amber-400', 
       bgColor: 'from-amber-500/15 to-yellow-500/5', 
-      dailyTarget: profile?.targetCarbs || 300, 
+      dailyTarget: targets.carbs, 
       emoji: '🌾' 
     },
     { 
@@ -88,7 +106,7 @@ export default function NutritionSummary({ total, entryCount, profile }: Nutriti
       gradient: 'from-pink-500 to-rose-500', 
       textColor: 'text-rose-400', 
       bgColor: 'from-pink-500/15 to-rose-500/5', 
-      dailyTarget: profile?.targetFat || 65, 
+      dailyTarget: targets.fat, 
       emoji: '🧈' 
     },
   ];
@@ -102,11 +120,13 @@ export default function NutritionSummary({ total, entryCount, profile }: Nutriti
     { key: 'vitaminC', label: 'فيتامين C', unit: 'mg', gradient: 'from-yellow-400 to-orange-400', textColor: 'text-yellow-400', bgColor: 'from-yellow-500/10 to-orange-500/5', dailyTarget: 90, emoji: '🍊' },
   ];
 
-  // Calculate remaining
-  const remainingCalories = (profile?.targetCalories || 2000) - total.calories;
-  const remainingProtein = (profile?.targetProtein || 50) - total.protein;
-  const remainingCarbs = (profile?.targetCarbs || 300) - total.carbs;
-  const remainingFat = (profile?.targetFat || 65) - total.fat;
+  // باقي الكود كما هو...
+  // بعدين الأجزاء اللي بتحسب المتبقي تستخدم targets بدل الأرقام الثابتة
+
+  const remainingCalories = targets.calories - total.calories;
+  const remainingProtein = targets.protein - total.protein;
+  const remainingCarbs = targets.carbs - total.carbs;
+  const remainingFat = targets.fat - total.fat;
 
   return (
     <motion.div
@@ -209,7 +229,7 @@ export default function NutritionSummary({ total, entryCount, profile }: Nutriti
           <div className="grid grid-cols-4 gap-2 text-center">
             <div>
               <div className={`text-sm font-bold ${remainingCalories > 0 ? 'text-orange-400' : 'text-green-400'}`}>
-                {remainingCalories > 0 ? remainingCalories : '✓'}
+                {remainingCalories > 0 ? Math.round(remainingCalories) : '✓'}
               </div>
               <div className="text-[9px] text-white/20">سعرات</div>
             </div>

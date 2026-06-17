@@ -37,6 +37,20 @@ export default function TelegramTab({ botToken, chatId, onSetBotToken, onSetChat
     setTimeout(() => setTestStatus('idle'), 3000);
   }
 
+  // وجبة مصرية نموذجية للمعاينة 🇪🇬
+  const egyptianMealPreview = {
+    name: 'وجبة فول وطعمية',
+    emoji: '🇪🇬',
+    items: [
+      { name: 'فول مدمس', quantity: '1', unit: 'صحن', calories: 220, protein: 12, emoji: '🫘' },
+      { name: 'طعمية', quantity: '3', unit: 'حبة', calories: 200, protein: 8, emoji: '🧆' },
+      { name: 'عيش بلدي', quantity: '1', unit: 'رغيف', calories: 250, protein: 9, emoji: '🍞' },
+      { name: 'سلطة خضار', quantity: '1', unit: 'صحن', calories: 45, protein: 1, emoji: '🥗' },
+    ],
+    totalCalories: 715,
+    totalProtein: 30,
+  };
+
   return (
     <div className="space-y-5">
       {/* Header */}
@@ -51,10 +65,10 @@ export default function TelegramTab({ botToken, chatId, onSetBotToken, onSetChat
           className="inline-flex items-center justify-center w-16 h-16 rounded-3xl bg-gradient-to-br from-blue-500/20 to-cyan-500/20 mb-3"
           style={{ boxShadow: '0 0 40px rgba(14, 165, 233, 0.2)' }}
         >
-          <span className="text-3xl">📱</span>
+          <span className="text-3xl">🇪🇬</span>
         </motion.div>
         <h2 className="text-xl font-bold text-white">ربط تيليغرام</h2>
-        <p className="text-white/30 text-sm mt-1">أرسل وجباتك مباشرة لتيليغرام</p>
+        <p className="text-white/30 text-sm mt-1">أرسل وجباتك المصرية مباشرة لتيليغرام</p>
       </motion.div>
 
       {/* Setup */}
@@ -82,7 +96,7 @@ export default function TelegramTab({ botToken, chatId, onSetBotToken, onSetChat
               <div>
                 <h4 className="text-blue-400/80 font-semibold text-sm mb-3 flex items-center gap-2">
                   <Sparkles size={12} />
-                  خطوات سريعة
+                  خطوات سريعة 🇪🇬
                 </h4>
                 <ol className="text-white/30 text-xs space-y-2.5 list-decimal list-inside leading-relaxed">
                   <li>
@@ -99,6 +113,7 @@ export default function TelegramTab({ botToken, chatId, onSetBotToken, onSetChat
                       @userinfobot <ExternalLink size={10} />
                     </a>
                   </li>
+                  <li className="text-amber-400/30">🍞 استمتع بإرسال وجباتك المصرية!</li>
                 </ol>
               </div>
             </div>
@@ -201,13 +216,13 @@ export default function TelegramTab({ botToken, chatId, onSetBotToken, onSetChat
           </motion.div>
           <span className={`text-sm font-medium ${botToken && chatId ? 'text-emerald-400' : 'text-white/20'}`}>
             {botToken && chatId
-              ? '✅ متصل — يمكنك إرسال الوجبات من "وجباتي"'
+              ? '✅ متصل — يمكنك إرسال الوجبات المصرية من "وجباتي" 🇪🇬'
               : '⚠️ غير متصل'}
           </span>
         </div>
       </motion.div>
 
-      {/* Preview */}
+      {/* Preview - مع أكلات مصرية 🇪🇬 */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -216,44 +231,51 @@ export default function TelegramTab({ botToken, chatId, onSetBotToken, onSetChat
       >
         <h3 className="text-white/30 text-xs font-semibold text-right mb-4 flex items-center justify-end gap-2">
           <Sparkles size={12} className="text-primary-400" />
-          معاينة الرسالة
+          معاينة الرسالة 🇪🇬
         </h3>
         <div className="bg-gradient-to-br from-[#0f1829] to-[#0a1628] rounded-2xl p-5 font-mono text-[9px] text-white/40 text-left leading-relaxed border border-white/[0.05]" dir="ltr">
           <pre className="whitespace-pre-wrap">
 {`╔══════════════════════════╗
-║     🍽️ *مِيزان* ⚖️        ║
+║     🇪🇬 *مِيزان* ⚖️        ║
 ╠══════════════════════════╣
-║   📋 *فطور صباحي*
+║   📋 *${egyptianMealPreview.name}*
 ╚══════════════════════════╝
 
-📅 *التاريخ:* 15 يناير 2025
+📅 *التاريخ:* 16 يناير 2025
 ⏰ *الوقت:* 08:30 ص
-🍴 *عدد الأصناف:* 4
+🍴 *عدد الأصناف:* ${egyptianMealPreview.items.length}
+🏷️ *نوع الوجبة:* مصرية 🇪🇬
 
 ━━━━━━━━━━━━━━━━━━━━━━
 📝 *المكونات:*
 ━━━━━━━━━━━━━━━━━━━━━━
 
-• بيضة
-   ├ 📊 2 حبة
-   └ 🔥 155 سعرة | 💪 13g بروتين
-
-• خبز عربي
-   ├ 📊 1 حبة
-   └ 🔥 165 سعرة | 💪 5.5g بروتين
+${egyptianMealPreview.items.map(item => 
+`${item.emoji} *${item.name}*
+   ├ 📊 ${item.quantity} ${item.unit}
+   └ 🔥 ${item.calories} سعرة | 💪 ${item.protein}g بروتين`
+).join('\n\n')}
 
 ━━━━━━━━━━━━━━━━━━━━━━
 📊 *الإجمالي:*
 ━━━━━━━━━━━━━━━━━━━━━━
 
-🔥 *السعرات:* 420
+🔥 *السعرات:* ${egyptianMealPreview.totalCalories}
    ▓▓▓▓▓▓░░░░ 60%
 
-💪 *البروتين:* 28g
+💪 *البروتين:* ${egyptianMealPreview.totalProtein}g
    ▓▓▓▓▓▓▓░░░ 70%
+
+🌾 *الكارب:* 95g
+   ▓▓▓▓▓▓▓▓░░ 80% (مصري! 🇪🇬)
+
+🧈 *الدهون:* 18g
+   ▓▓▓▓░░░░░░ 40%
 
 ╔══════════════════════════╗
 ║  ⚖️ مُرسل من تطبيق مِيزان  ║
+║  🇪🇬 غذاء صحي على الطريقة  ║
+║  المصرية 🍞🫘🥗           ║
 ╚══════════════════════════╝`}
           </pre>
         </div>
