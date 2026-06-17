@@ -14,35 +14,10 @@ import type {
 interface StatsTabProps {
   profile: UserProfile | null;
   eatenFoods: DailyEatenFood[];
-  botToken?: string;
-  chatId?: string;
-  onSendToTelegram?: (message: string) => void;
 }
 
-// ===== دوال حساب التقديرات =====
-function calculateCalorieSurplus(caloriesEaten: number, targetCalories: number): number {
-  return caloriesEaten - targetCalories;
-}
-
-function estimateWeightChange(calorieSurplus: number, days: number): number {
-  const totalSurplus = calorieSurplus * days;
-  return totalSurplus / 7700;
-}
-
-function estimateMuscleGain(calorieSurplus: number, proteinIntake: number, targetProtein: number, days: number): number {
-  if (calorieSurplus > 0 && proteinIntake >= targetProtein * 0.8) {
-    const totalSurplus = calorieSurplus * days;
-    const muscleRatio = Math.min(proteinIntake / targetProtein, 1.5) * 0.25;
-    return (totalSurplus / 7700) * muscleRatio;
-  }
-  if (calorieSurplus < 0 && proteinIntake >= targetProtein * 0.9) {
-    return 0;
-  }
-  return 0;
-}
-
-export default function StatsTab({ profile, eatenFoods, botToken, chatId, onSendToTelegram }: StatsTabProps) {
-  const [view, setView] = useState<'daily' | 'monthly' | 'yearly' | 'estimates'>('monthly');
+export default function StatsTab({ profile, eatenFoods }: StatsTabProps) {
+  const [view, setView] = useState<'daily' | 'monthly' | 'yearly'>('monthly');
   const [selectedMonth, setSelectedMonth] = useState(() => {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
@@ -50,7 +25,6 @@ export default function StatsTab({ profile, eatenFoods, botToken, chatId, onSend
   const [selectedYear, setSelectedYear] = useState(() => {
     return String(new Date().getFullYear());
   });
-  const [sendingReport, setSendingReport] = useState(false);
 
   // ===== حساب الإحصائيات =====
   const statsData = useMemo(() => {
@@ -231,100 +205,6 @@ export default function StatsTab({ profile, eatenFoods, botToken, chatId, onSend
       bestStreak = Math.max(bestStreak, streak);
     }
 
-    // ===== حساب التقديرات =====
-    let estimates = null;
-    if (profile && dailyStats.length > 0) {
-      const todayStats = dailyStats.find(s => s.date === today);
-      const targetCalories = profile.targetCalories;
-      const targetProtein = profile.targetProtein;
-      const currentWeight = profile.weight;
-
-      // ===== التقدير اليومي =====
-      let dailyEstimate = null;
-      if (todayStats) {
-        const surplus = todayStats.totalCalories - targetCalories;
-        const dailyWeightChange = surplus / 7700;
-        const muscleGain = estimateMuscleGain(surplus, todayStats.totalProtein, targetProtein, 1);
-        dailyEstimate = {
-          calories: todayStats.totalCalories,
-          protein: todayStats.totalProtein,
-          surplus,
-          weightChange: dailyWeightChange,
-          muscleGain,
-          fatChange: dailyWeightChange - muscleGain,
-          metGoal: todayStats.metGoal,
-        };
-      }
-
-      // ===== التقدير الشهري =====
-      const currentMonth = today.substring(0, 7);
-      const monthData = monthlyStats.find(m => m.month === currentMonth);
-      let monthlyEstimate = null;
-      if (monthData && monthData.daysLogged > 0) {
-        const avgSurplus = monthData.avgDailyCalories - targetCalories;
-        const totalSurplus = avgSurplus * monthData.daysLogged;
-        const weightChange = totalSurplus / 7700;
-        const muscleGain = estimateMuscleGain(
-          avgSurplus, 
-          monthData.avgDailyProtein, 
-          targetProtein, 
-          monthData.daysLogged
-        );
-        monthlyEstimate = {
-          avgCalories: monthData.avgDailyCalories,
-          avgProtein: monthData.avgDailyProtein,
-          avgSurplus,
-          weightChange,
-          muscleGain,
-          fatChange: weightChange - muscleGain,
-          daysLogged: monthData.daysLogged,
-          daysMetGoal: monthData.daysMetGoal,
-          projectedWeight: currentWeight + weightChange,
-        };
-      }
-
-      // ===== التقدير السنوي =====
-      const currentYear = today.substring(0, 4);
-      const yearData = yearlyStats.find(y => y.year === currentYear);
-      let yearlyEstimate = null;
-      if (yearData && yearData.monthsLogged > 0) {
-        const avgMonthlyCalories = yearData.totalCalories / yearData.monthsLogged;
-        const avgDailyCalories = avgMonthlyCalories / 30;
-        const avgSurplus = avgDailyCalories - targetCalories;
-        const totalSurplus = avgSurplus * yearData.totalDaysLogged;
-        const weightChange = totalSurplus / 7700;
-        const avgProtein = yearData.totalProtein / yearData.totalDaysLogged;
-        const muscleGain = estimateMuscleGain(
-          avgSurplus,
-          avgProtein,
-          targetProtein,
-          yearData.totalDaysLogged
-        );
-        yearlyEstimate = {
-          avgDailyCalories,
-          avgProtein,
-          avgSurplus,
-          weightChange,
-          muscleGain,
-          fatChange: weightChange - muscleGain,
-          monthsLogged: yearData.monthsLogged,
-          totalDaysLogged: yearData.totalDaysLogged,
-          projectedWeight: currentWeight + weightChange,
-        };
-      }
-
-      estimates = {
-        daily: dailyEstimate,
-        monthly: monthlyEstimate,
-        yearly: yearlyEstimate,
-        currentWeight,
-        targetCalories,
-        targetProtein,
-        goal: profile.goal,
-        goalLabel: profile.goal === 'bulk' ? 'تضخيم' : profile.goal === 'cut' ? 'تنشيف' : 'تثبيت',
-      };
-    }
-
     return {
       dailyStats,
       monthlyStats,
@@ -332,409 +212,183 @@ export default function StatsTab({ profile, eatenFoods, botToken, chatId, onSend
       currentStreak,
       bestStreak,
       totalDaysLogged: dailyStats.length,
-      estimates,
     };
   }, [eatenFoods, profile]);
 
-  // ===== دالة إرسال التقرير لتليغرام =====
-  const sendReportToTelegram = async (type: 'daily' | 'monthly' | 'yearly') => {
-    if (!botToken || !chatId) {
-      alert('⚠️ يرجى إعداد تيليغرام أولاً من تبويب تيليغرام');
-      return;
-    }
+  // ===== دالة عرض اليومي =====
+  const renderDailyView = () => {
+    const today = new Date().toISOString().split('T')[0];
+    const todayStats = statsData.dailyStats.find(s => s.date === today);
+    const last7Days = statsData.dailyStats.slice(-7);
 
-    setSendingReport(true);
-    try {
-      const today = new Date().toISOString().split('T')[0];
-      const currentMonth = today.substring(0, 7);
-      const currentYear = today.substring(0, 4);
-      const est = statsData.estimates;
-
-      let message = '';
-      const header = `╔══════════════════════════════╗\n║     📊 *مِيزان - تقرير* ⚖️     ║\n╚══════════════════════════════╝\n\n`;
-
-      if (type === 'daily' && est?.daily) {
-        const d = est.daily;
-        const weightChangeKg = d.weightChange;
-        const isBulk = est.goal === 'bulk';
-        
-        message = header;
-        message += `📅 *التقرير اليومي*\n`;
-        message += `📆 التاريخ: ${new Date(today).toLocaleDateString('ar', { year: 'numeric', month: 'long', day: 'numeric' })}\n\n`;
-        message += `━━━━━━━━━━━━━━━━━━━━━━\n`;
-        message += `📊 *ما أكلت اليوم:*\n`;
-        message += `━━━━━━━━━━━━━━━━━━━━━━\n\n`;
-        message += `🔥 السعرات: ${Math.round(d.calories)} / ${est.targetCalories}\n`;
-        message += `💪 البروتين: ${Math.round(d.protein)}g / ${est.targetProtein}g\n`;
-        message += `📈 ${d.metGoal ? '✅ حققت الهدف' : '❌ لم تحقق الهدف'}\n\n`;
-        message += `━━━━━━━━━━━━━━━━━━━━━━\n`;
-        message += `⚖️ *تقديرات الوزن:*\n`;
-        message += `━━━━━━━━━━━━━━━━━━━━━━\n\n`;
-        message += `📊 الفائض/العجز: ${d.surplus > 0 ? '+' : ''}${Math.round(d.surplus)} سعرة\n`;
-        message += `⚖️ تغير الوزن المتوقع: ${weightChangeKg > 0 ? '+' : ''}${weightChangeKg.toFixed(3)} كجم\n`;
-        if (isBulk) {
-          message += `💪 العضلات المتوقعة: ${d.muscleGain.toFixed(3)} كجم\n`;
-          message += `🧈 الدهون المتوقعة: ${d.fatChange.toFixed(3)} كجم\n`;
-        } else if (est.goal === 'cut') {
-          message += `🔥 الدهون المتوقعة: ${Math.abs(d.fatChange).toFixed(3)} كجم\n`;
-          message += `💪 الحفاظ على العضلات: ${d.muscleGain >= 0 ? '✅' : '⚠️'}\n`;
-        }
-        message += `\n💡 *نصيحة:* `;
-        if (d.metGoal) {
-          message += `👏 ممتاز! أنت على الطريق الصحيح. استمر!`;
-        } else if (d.surplus > 0 && isBulk) {
-          message += `💪 أنت في تضخيم، الفائض جيد لكن حاول تلتزم بالهدف اليومي.`;
-        } else if (d.surplus < 0 && est.goal === 'cut') {
-          message += `🔥 أنت في تنشيف، العجز جيد لكن تأكد من كفاية البروتين.`;
-        } else {
-          message += `📌 حاول تعديل سعراتك لتقترب من هدفك اليومي.`;
-        }
-      }
-
-      else if (type === 'monthly' && est?.monthly) {
-        const m = est.monthly;
-        const monthData = statsData.monthlyStats.find(m => m.month === currentMonth);
-        const monthName = new Date(currentMonth + '-01').toLocaleDateString('ar', { month: 'long', year: 'numeric' });
-        
-        message = header;
-        message += `📅 *التقرير الشهري*\n`;
-        message += `📆 الشهر: ${monthName}\n\n`;
-        message += `━━━━━━━━━━━━━━━━━━━━━━\n`;
-        message += `📊 *إحصائيات الشهر:*\n`;
-        message += `━━━━━━━━━━━━━━━━━━━━━━\n\n`;
-        message += `📆 أيام مسجلة: ${m.daysLogged}\n`;
-        message += `✅ أيام حققت الهدف: ${m.daysMetGoal}\n`;
-        message += `🔥 متوسط السعرات: ${Math.round(m.avgCalories)} / ${est.targetCalories}\n`;
-        message += `💪 متوسط البروتين: ${Math.round(m.avgProtein)}g / ${est.targetProtein}g\n\n`;
-        message += `━━━━━━━━━━━━━━━━━━━━━━\n`;
-        message += `⚖️ *تقديرات الوزن:*\n`;
-        message += `━━━━━━━━━━━━━━━━━━━━━━\n\n`;
-        message += `📊 متوسط الفائض/العجز: ${m.avgSurplus > 0 ? '+' : ''}${Math.round(m.avgSurplus)} سعرة/يوم\n`;
-        message += `⚖️ الوزن المتوقع حالياً: ${m.projectedWeight.toFixed(1)} كجم\n`;
-        message += `📈 التغير المتوقع: ${m.weightChange > 0 ? '+' : ''}${m.weightChange.toFixed(2)} كجم\n`;
-        if (est.goal === 'bulk') {
-          message += `💪 العضلات المتوقعة: ${m.muscleGain.toFixed(2)} كجم\n`;
-          message += `🧈 الدهون المتوقعة: ${m.fatChange.toFixed(2)} كجم\n`;
-        } else if (est.goal === 'cut') {
-          message += `🔥 الدهون المفقودة: ${Math.abs(m.fatChange).toFixed(2)} كجم\n`;
-        }
-        message += `\n💡 *نصيحة:* `;
-        if (m.daysMetGoal / m.daysLogged > 0.8) {
-          message += `🌟 ممتاز! التزمت بهدفك في ${Math.round((m.daysMetGoal/m.daysLogged)*100)}% من الأيام!`;
-        } else if (m.daysMetGoal / m.daysLogged > 0.5) {
-          message += `📊 جيد، لكن حاول زيادة الالتزام بالهدف اليومي.`;
-        } else {
-          message += `⚠️ نسبة الالتزام ${Math.round((m.daysMetGoal/m.daysLogged)*100)}%، حاول التركيز أكثر على هدفك.`;
-        }
-      }
-
-      else if (type === 'yearly' && est?.yearly) {
-        const y = est.yearly;
-        const yearData = statsData.yearlyStats.find(y => y.year === currentYear);
-        
-        message = header;
-        message += `📅 *التقرير السنوي*\n`;
-        message += `📆 السنة: ${currentYear}\n\n`;
-        message += `━━━━━━━━━━━━━━━━━━━━━━\n`;
-        message += `📊 *إحصائيات السنة:*\n`;
-        message += `━━━━━━━━━━━━━━━━━━━━━━\n\n`;
-        message += `📆 أشهر مسجلة: ${y.monthsLogged}\n`;
-        message += `📆 أيام مسجلة: ${y.totalDaysLogged}\n`;
-        message += `🔥 متوسط السعرات: ${Math.round(y.avgDailyCalories)} / ${est.targetCalories}\n`;
-        message += `💪 متوسط البروتين: ${Math.round(y.avgProtein)}g / ${est.targetProtein}g\n\n`;
-        message += `━━━━━━━━━━━━━━━━━━━━━━\n`;
-        message += `⚖️ *تقديرات الوزن:*\n`;
-        message += `━━━━━━━━━━━━━━━━━━━━━━\n\n`;
-        message += `📊 متوسط الفائض/العجز: ${y.avgSurplus > 0 ? '+' : ''}${Math.round(y.avgSurplus)} سعرة/يوم\n`;
-        message += `⚖️ الوزن المتوقع حالياً: ${y.projectedWeight.toFixed(1)} كجم\n`;
-        message += `📈 التغير السنوي المتوقع: ${y.weightChange > 0 ? '+' : ''}${y.weightChange.toFixed(2)} كجم\n`;
-        if (est.goal === 'bulk') {
-          message += `💪 العضلات المتوقعة: ${y.muscleGain.toFixed(2)} كجم\n`;
-          message += `🧈 الدهون المتوقعة: ${y.fatChange.toFixed(2)} كجم\n`;
-        } else if (est.goal === 'cut') {
-          message += `🔥 الدهون المفقودة: ${Math.abs(y.fatChange).toFixed(2)} كجم\n`;
-        }
-        message += `\n💡 *نصيحة:* `;
-        if (y.monthsLogged > 6) {
-          message += `🌟 عمل رائع! سجلت ${y.monthsLogged} شهر كامل. استمر!`;
-        } else if (y.monthsLogged > 3) {
-          message += `📊 بداية جيدة، استمر في التسجيل للحصول على نتائج أفضل.`;
-        } else {
-          message += `📌 ابدأ بتسجيل وجباتك باستمرار للحصول على تحليل دقيق.`;
-        }
-      }
-
-      message += `\n\n━━━━━━━━━━━━━━━━━━━━━━\n`;
-      message += `╔══════════════════════════════╗\n`;
-      message += `║  ⚖️ مِيزان - حاسبة التغذية   ║\n`;
-      message += `║     🎯 ${est?.goalLabel || 'تتبع'}    ║\n`;
-      message += `╚══════════════════════════════╝`;
-
-      if (onSendToTelegram) {
-        await onSendToTelegram(message);
-      } else {
-        const url = `https://api.telegram.org/bot${botToken}/sendMessage`;
-        await fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ chat_id: chatId, text: message, parse_mode: 'Markdown' }),
-        });
-      }
-      alert(`✅ تم إرسال التقرير ${type === 'daily' ? 'اليومي' : type === 'monthly' ? 'الشهري' : 'السنوي'} بنجاح!`);
-    } catch (error) {
-      alert('❌ فشل إرسال التقرير');
-    }
-    setSendingReport(false);
-  };
-
-  // ===== عرض تقديرات الوزن =====
-  const renderEstimates = () => {
-    const est = statsData.estimates;
-    if (!est) {
+    if (statsData.dailyStats.length === 0) {
       return (
         <div className="text-center py-12">
-          <div className="text-6xl mb-4 opacity-20">⚖️</div>
-          <p className="text-white/20 text-sm">لا توجد بيانات كافية للتقدير</p>
-          <p className="text-white/10 text-xs mt-1">سجل وجباتك لمدة يوم على الأقل مع إعداد الملف الشخصي</p>
+          <div className="text-6xl mb-4 opacity-20">📊</div>
+          <p className="text-white/20 text-sm">لا توجد بيانات</p>
+          <p className="text-white/10 text-xs mt-1">سجل وجباتك لتظهر الإحصائيات</p>
         </div>
       );
     }
 
-    const goalEmoji = est.goal === 'bulk' ? '💪' : est.goal === 'cut' ? '🔥' : '⚖️';
-
     return (
       <div className="space-y-4">
-        {/* ===== التقدير اليومي ===== */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="glass-card rounded-2xl p-5 border border-emerald-500/10"
-        >
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-[10px] text-white/20 bg-white/[0.03] px-3 py-1 rounded-full">تقدير يومي</span>
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-white/30">{goalEmoji} {est.goalLabel}</span>
-              <button
-                onClick={() => sendReportToTelegram('daily')}
-                disabled={sendingReport}
-                className="text-[10px] flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 transition-all"
-              >
-                <Send size={12} />
-                إرسال
-              </button>
-            </div>
-          </div>
-
-          {est.daily ? (
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <div className="text-center bg-white/[0.02] rounded-xl p-3">
-                <div className="text-sm font-bold text-orange-400">{Math.round(est.daily.calories)}</div>
-                <div className="text-[8px] text-white/20">سعرة اليوم</div>
-                <div className={`text-[8px] mt-0.5 ${est.daily.metGoal ? 'text-emerald-400' : 'text-orange-400'}`}>
-                  {est.daily.metGoal ? '✅ حققت الهدف' : '❌ لم تحقق'}
-                </div>
-              </div>
-              <div className="text-center bg-white/[0.02] rounded-xl p-3">
-                <div className={`text-sm font-bold ${est.daily.surplus > 0 ? 'text-emerald-400' : 'text-orange-400'}`}>
-                  {est.daily.surplus > 0 ? '+' : ''}{Math.round(est.daily.surplus)}
-                </div>
-                <div className="text-[8px] text-white/20">الفائض/العجز</div>
-              </div>
-              <div className="text-center bg-white/[0.02] rounded-xl p-3">
-                <div className={`text-sm font-bold ${est.daily.weightChange > 0 ? 'text-emerald-400' : 'text-orange-400'}`}>
-                  {est.daily.weightChange > 0 ? '+' : ''}{est.daily.weightChange.toFixed(3)}
-                </div>
-                <div className="text-[8px] text-white/20">تغير الوزن (كجم)</div>
-              </div>
-              <div className="text-center bg-white/[0.02] rounded-xl p-3">
-                <div className="text-sm font-bold text-blue-400">{Math.round(est.daily.protein)}g</div>
-                <div className="text-[8px] text-white/20">بروتين اليوم</div>
-              </div>
+        <div className="glass-card rounded-2xl p-4">
+          <h3 className="text-xs text-white/40 font-medium text-right mb-3">📅 اليوم</h3>
+          {todayStats ? (
+            <div className="grid grid-cols-4 gap-2">
+              <div className="text-center"><div className="text-lg font-black text-orange-400">{Math.round(todayStats.totalCalories)}</div><div className="text-[8px] text-white/20">سعرة</div></div>
+              <div className="text-center"><div className="text-sm font-bold text-blue-400">{Math.round(todayStats.totalProtein)}g</div><div className="text-[8px] text-white/20">بروتين</div></div>
+              <div className="text-center"><div className="text-sm font-bold text-amber-400">{Math.round(todayStats.totalCarbs)}g</div><div className="text-[8px] text-white/20">كارب</div></div>
+              <div className="text-center"><div className="text-sm font-bold text-pink-400">{Math.round(todayStats.totalFat)}g</div><div className="text-[8px] text-white/20">دهون</div></div>
             </div>
           ) : (
-            <p className="text-white/15 text-xs text-center py-2">لم تسجل أي وجبات اليوم</p>
+            <p className="text-center text-white/15 text-xs">لم تسجل أي وجبات اليوم</p>
           )}
-        </motion.div>
+        </div>
 
-        {/* ===== التقدير الشهري ===== */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="glass-card rounded-2xl p-5 border border-primary-500/10"
-        >
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-[10px] text-white/20 bg-white/[0.03] px-3 py-1 rounded-full">تقدير شهري</span>
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-white/30">📊 {new Date().toLocaleDateString('ar', { month: 'long' })}</span>
-              <button
-                onClick={() => sendReportToTelegram('monthly')}
-                disabled={sendingReport}
-                className="text-[10px] flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 transition-all"
-              >
-                <Send size={12} />
-                إرسال
-              </button>
-            </div>
+        <div className="glass-card rounded-2xl p-4">
+          <h3 className="text-xs text-white/40 font-medium text-right mb-3">📈 آخر 7 أيام</h3>
+          <div className="flex items-end gap-1 h-20">
+            {last7Days.map((stat, i) => {
+              const height = Math.min((stat.totalCalories / (profile?.targetCalories || 2000)) * 100, 100);
+              return (
+                <div key={i} className="flex-1 flex flex-col items-center gap-0.5">
+                  <div className={`w-full rounded-sm transition-all duration-500 ${stat.metGoal ? 'bg-emerald-500/60' : 'bg-orange-500/40'}`} style={{ height: `${Math.max(height * 0.6, 2)}%` }} />
+                  <span className="text-[5px] text-white/10">{new Date(stat.date).getDate()}</span>
+                </div>
+              );
+            })}
           </div>
+        </div>
 
-          {est.monthly ? (
-            <div className="space-y-3">
-              <div className="grid grid-cols-3 gap-2">
-                <div className="text-center bg-white/[0.02] rounded-xl p-2">
-                  <div className="text-sm font-bold text-blue-400">{est.monthly.daysLogged}</div>
-                  <div className="text-[7px] text-white/20">أيام مسجلة</div>
-                </div>
-                <div className="text-center bg-white/[0.02] rounded-xl p-2">
-                  <div className="text-sm font-bold text-emerald-400">{est.monthly.daysMetGoal}</div>
-                  <div className="text-[7px] text-white/20">أيام حققت الهدف</div>
-                </div>
-                <div className="text-center bg-white/[0.02] rounded-xl p-2">
-                  <div className={`text-sm font-bold ${est.monthly.avgSurplus > 0 ? 'text-emerald-400' : 'text-orange-400'}`}>
-                    {est.monthly.avgSurplus > 0 ? '+' : ''}{Math.round(est.monthly.avgSurplus)}
-                  </div>
-                  <div className="text-[7px] text-white/20">متوسط الفائض</div>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div className="text-center bg-gradient-to-br from-emerald-500/10 to-green-500/5 rounded-xl p-2 border border-emerald-500/20">
-                  <div className={`text-sm font-bold ${est.monthly.weightChange > 0 ? 'text-emerald-400' : 'text-orange-400'}`}>
-                    {est.monthly.weightChange > 0 ? '+' : ''}{est.monthly.weightChange.toFixed(2)} كجم
-                  </div>
-                  <div className="text-[7px] text-white/20">تغير الوزن</div>
-                </div>
-                <div className="text-center bg-gradient-to-br from-primary-500/10 to-blue-500/5 rounded-xl p-2 border border-primary-500/20">
-                  <div className="text-sm font-bold text-primary-400">{est.monthly.projectedWeight.toFixed(1)} كجم</div>
-                  <div className="text-[7px] text-white/20">الوزن المتوقع</div>
-                </div>
-              </div>
-              {est.goal === 'bulk' && (
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="text-center bg-blue-500/5 rounded-xl p-2 border border-blue-500/20">
-                    <div className="text-sm font-bold text-blue-400">{est.monthly.muscleGain.toFixed(2)} كجم</div>
-                    <div className="text-[7px] text-white/20">💪 عضلات متوقعة</div>
-                  </div>
-                  <div className="text-center bg-orange-500/5 rounded-xl p-2 border border-orange-500/20">
-                    <div className="text-sm font-bold text-orange-400">{est.monthly.fatChange.toFixed(2)} كجم</div>
-                    <div className="text-[7px] text-white/20">🧈 دهون متوقعة</div>
-                  </div>
-                </div>
-              )}
-            </div>
-          ) : (
-            <p className="text-white/15 text-xs text-center py-2">لا توجد بيانات كافية لهذا الشهر</p>
-          )}
-        </motion.div>
-
-        {/* ===== التقدير السنوي ===== */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="glass-card rounded-2xl p-5 border border-amber-500/10"
-        >
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-[10px] text-white/20 bg-white/[0.03] px-3 py-1 rounded-full">تقدير سنوي</span>
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-white/30">📅 {new Date().getFullYear()}</span>
-              <button
-                onClick={() => sendReportToTelegram('yearly')}
-                disabled={sendingReport}
-                className="text-[10px] flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 transition-all"
-              >
-                <Send size={12} />
-                إرسال
-              </button>
-            </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="glass-card rounded-2xl p-4 text-center border border-emerald-500/20">
+            <div className="flex items-center justify-center gap-1"><span className="text-2xl">🔥</span><span className="text-2xl font-black text-emerald-400">{statsData.currentStreak}</span></div>
+            <div className="text-[10px] text-white/30">أيام متتالية</div>
           </div>
-
-          {est.yearly ? (
-            <div className="space-y-3">
-              <div className="grid grid-cols-3 gap-2">
-                <div className="text-center bg-white/[0.02] rounded-xl p-2">
-                  <div className="text-sm font-bold text-blue-400">{est.yearly.monthsLogged}</div>
-                  <div className="text-[7px] text-white/20">أشهر مسجلة</div>
-                </div>
-                <div className="text-center bg-white/[0.02] rounded-xl p-2">
-                  <div className="text-sm font-bold text-purple-400">{est.yearly.totalDaysLogged}</div>
-                  <div className="text-[7px] text-white/20">أيام مسجلة</div>
-                </div>
-                <div className="text-center bg-white/[0.02] rounded-xl p-2">
-                  <div className={`text-sm font-bold ${est.yearly.avgSurplus > 0 ? 'text-emerald-400' : 'text-orange-400'}`}>
-                    {est.yearly.avgSurplus > 0 ? '+' : ''}{Math.round(est.yearly.avgSurplus)}
-                  </div>
-                  <div className="text-[7px] text-white/20">متوسط الفائض</div>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div className="text-center bg-gradient-to-br from-emerald-500/10 to-green-500/5 rounded-xl p-2 border border-emerald-500/20">
-                  <div className={`text-sm font-bold ${est.yearly.weightChange > 0 ? 'text-emerald-400' : 'text-orange-400'}`}>
-                    {est.yearly.weightChange > 0 ? '+' : ''}{est.yearly.weightChange.toFixed(2)} كجم
-                  </div>
-                  <div className="text-[7px] text-white/20">التغير السنوي</div>
-                </div>
-                <div className="text-center bg-gradient-to-br from-primary-500/10 to-blue-500/5 rounded-xl p-2 border border-primary-500/20">
-                  <div className="text-sm font-bold text-primary-400">{est.yearly.projectedWeight.toFixed(1)} كجم</div>
-                  <div className="text-[7px] text-white/20">الوزن المتوقع</div>
-                </div>
-              </div>
-              {est.goal === 'bulk' && (
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="text-center bg-blue-500/5 rounded-xl p-2 border border-blue-500/20">
-                    <div className="text-sm font-bold text-blue-400">{est.yearly.muscleGain.toFixed(2)} كجم</div>
-                    <div className="text-[7px] text-white/20">💪 عضلات متوقعة</div>
-                  </div>
-                  <div className="text-center bg-orange-500/5 rounded-xl p-2 border border-orange-500/20">
-                    <div className="text-sm font-bold text-orange-400">{est.yearly.fatChange.toFixed(2)} كجم</div>
-                    <div className="text-[7px] text-white/20">🧈 دهون متوقعة</div>
-                  </div>
-                </div>
-              )}
-            </div>
-          ) : (
-            <p className="text-white/15 text-xs text-center py-2">لا توجد بيانات كافية لهذه السنة</p>
-          )}
-        </motion.div>
-
-        {/* ===== ملخص الحالة ===== */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
-          className="glass-card rounded-2xl p-4 border border-white/[0.03] bg-gradient-to-r from-primary-500/5 to-emerald-500/5"
-        >
-          <div className="flex items-center justify-between text-[10px] text-white/30">
-            <span>⚖️ الوزن الحالي: {est.currentWeight} كجم</span>
-            <span>🎯 الهدف: {est.goalLabel}</span>
-            <span>📊 أيام مسجلة: {statsData.totalDaysLogged}</span>
+          <div className="glass-card rounded-2xl p-4 text-center border border-amber-500/20">
+            <div className="flex items-center justify-center gap-1"><span className="text-2xl">🏆</span><span className="text-2xl font-black text-amber-400">{statsData.bestStreak}</span></div>
+            <div className="text-[10px] text-white/30">أفضل سلسلة</div>
           </div>
-        </motion.div>
+        </div>
       </div>
     );
   };
 
-  // ============================================
-  // العرض الرئيسي
-  // ============================================
+  // ===== دالة عرض الشهري =====
+  const renderMonthlyView = () => {
+    const monthData = statsData.monthlyStats.find(m => m.month === selectedMonth);
+    if (!monthData) {
+      return (
+        <div className="text-center py-12">
+          <div className="text-6xl mb-4 opacity-20">📊</div>
+          <p className="text-white/20 text-sm">لا توجد بيانات لهذا الشهر</p>
+          <p className="text-white/10 text-xs mt-1">سجل وجباتك لتظهر الإحصائيات</p>
+        </div>
+      );
+    }
+
+    const monthName = new Date(monthData.month + '-01').toLocaleDateString('ar', { month: 'long', year: 'numeric' });
+    const daysInMonth = new Date(parseInt(monthData.month.split('-')[0]), parseInt(monthData.month.split('-')[1]), 0).getDate();
+    const completionRate = Math.round((monthData.daysLogged / daysInMonth) * 100);
+    const goalRate = monthData.daysLogged > 0 ? Math.round((monthData.daysMetGoal / monthData.daysLogged) * 100) : 0;
+
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between glass-card rounded-2xl p-4">
+          <button onClick={() => { const [year, month] = selectedMonth.split('-').map(Number); const newMonth = month === 1 ? 12 : month - 1; const newYear = month === 1 ? year - 1 : year; setSelectedMonth(`${newYear}-${String(newMonth).padStart(2, '0')}`); }} className="text-white/30 hover:text-white/60 p-2 rounded-xl transition-all"><ChevronLeft size={20} /></button>
+          <span className="text-white font-bold text-sm">{monthName}</span>
+          <button onClick={() => { const [year, month] = selectedMonth.split('-').map(Number); const newMonth = month === 12 ? 1 : month + 1; const newYear = month === 12 ? year + 1 : year; setSelectedMonth(`${newYear}-${String(newMonth).padStart(2, '0')}`); }} className="text-white/30 hover:text-white/60 p-2 rounded-xl transition-all"><ChevronRight size={20} /></button>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div className="glass-card rounded-2xl p-4 text-center"><div className="text-3xl font-black text-blue-400">{monthData.daysLogged}</div><div className="text-[10px] text-white/30">أيام مسجلة</div><div className="mt-1 text-[8px] text-white/15">{completionRate}% من الشهر</div></div>
+          <div className="glass-card rounded-2xl p-4 text-center"><div className="text-3xl font-black text-emerald-400">{monthData.daysMetGoal}</div><div className="text-[10px] text-white/30">أيام حققت الهدف</div><div className="mt-1 text-[8px] text-white/15">{goalRate}% من الأيام</div></div>
+          <div className="glass-card rounded-2xl p-4 text-center"><div className="text-2xl font-black text-orange-400">{Math.round(monthData.totalCalories).toLocaleString()}</div><div className="text-[10px] text-white/30">إجمالي سعرات</div><div className="mt-1 text-[8px] text-white/15">معدل {Math.round(monthData.avgDailyCalories)}/يوم</div></div>
+          <div className="glass-card rounded-2xl p-4 text-center"><div className="text-2xl font-black text-purple-400">{monthData.mealCount + monthData.extraCount}</div><div className="text-[10px] text-white/30">إجمالي وجبات</div><div className="mt-1 text-[8px] text-white/15">🍽️ {monthData.mealCount} | 🍿 {monthData.extraCount}</div></div>
+        </div>
+
+        <div className="glass-card rounded-2xl p-4">
+          <h3 className="text-xs text-white/40 font-medium text-right mb-3">📊 متوسطات اليوم الواحد</h3>
+          <div className="grid grid-cols-3 gap-3">
+            <div className="text-center"><div className="flex items-center justify-center gap-1 text-blue-400"><Dumbbell size={14} /><span className="text-sm font-bold">{Math.round(monthData.avgDailyProtein)}</span><span className="text-[8px] text-white/20">g</span></div><div className="text-[8px] text-white/20">بروتين</div></div>
+            <div className="text-center"><div className="flex items-center justify-center gap-1 text-amber-400"><Wheat size={14} /><span className="text-sm font-bold">{Math.round(monthData.avgDailyCarbs)}</span><span className="text-[8px] text-white/20">g</span></div><div className="text-[8px] text-white/20">كارب</div></div>
+            <div className="text-center"><div className="flex items-center justify-center gap-1 text-pink-400"><Droplet size={14} /><span className="text-sm font-bold">{Math.round(monthData.avgDailyFat)}</span><span className="text-[8px] text-white/20">g</span></div><div className="text-[8px] text-white/20">دهون</div></div>
+          </div>
+        </div>
+
+        <div className="glass-card rounded-2xl p-4">
+          <h3 className="text-xs text-white/40 font-medium text-right mb-3">📈 تقدم السعرات اليومية</h3>
+          <div className="flex items-end gap-1 h-24">
+            {statsData.dailyStats.filter(s => s.date.startsWith(selectedMonth)).map((stat, i) => {
+              const height = Math.min((stat.totalCalories / (profile?.targetCalories || 2000)) * 100, 100);
+              return <div key={i} className="flex-1 flex flex-col items-center gap-0.5"><div className={`w-full rounded-sm transition-all duration-500 ${stat.metGoal ? 'bg-emerald-500/60' : 'bg-orange-500/40'}`} style={{ height: `${Math.max(height * 0.7, 2)}%` }} /><span className="text-[5px] text-white/10">{new Date(stat.date).getDate()}</span></div>;
+            })}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // ===== دالة عرض السنوي =====
+  const renderYearlyView = () => {
+    const yearData = statsData.yearlyStats.find(y => y.year === selectedYear);
+    if (!yearData) {
+      return (
+        <div className="text-center py-12">
+          <div className="text-6xl mb-4 opacity-20">📊</div>
+          <p className="text-white/20 text-sm">لا توجد بيانات لهذه السنة</p>
+          <p className="text-white/10 text-xs mt-1">سجل وجباتك لتظهر الإحصائيات</p>
+        </div>
+      );
+    }
+
+    const completionRate = Math.round((yearData.monthsLogged / 12) * 100);
+
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between glass-card rounded-2xl p-4">
+          <button onClick={() => setSelectedYear(String(parseInt(selectedYear) - 1))} className="text-white/30 hover:text-white/60 p-2 rounded-xl transition-all"><ChevronLeft size={20} /></button>
+          <span className="text-white font-bold text-sm">{selectedYear}</span>
+          <button onClick={() => setSelectedYear(String(parseInt(selectedYear) + 1))} className="text-white/30 hover:text-white/60 p-2 rounded-xl transition-all"><ChevronRight size={20} /></button>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div className="glass-card rounded-2xl p-4 text-center"><div className="text-3xl font-black text-blue-400">{yearData.monthsLogged}</div><div className="text-[10px] text-white/30">أشهر مسجلة</div><div className="mt-1 text-[8px] text-white/15">{completionRate}% من السنة</div></div>
+          <div className="glass-card rounded-2xl p-4 text-center"><div className="text-2xl font-black text-orange-400">{Math.round(yearData.totalCalories / 1000).toFixed(1)}k</div><div className="text-[10px] text-white/30">إجمالي سعرات</div><div className="mt-1 text-[8px] text-white/15">{Math.round(yearData.avgMonthlyCalories).toLocaleString()}/شهر</div></div>
+          <div className="glass-card rounded-2xl p-4 text-center"><div className="text-2xl font-black text-purple-400">{yearData.totalDaysLogged}</div><div className="text-[10px] text-white/30">إجمالي أيام</div><div className="mt-1 text-[8px] text-white/15">{Math.round(yearData.totalDaysLogged / 30)} شهر</div></div>
+          <div className="glass-card rounded-2xl p-4 text-center"><div className="text-2xl font-black text-emerald-400">{yearData.totalMeals + yearData.totalExtras}</div><div className="text-[10px] text-white/30">إجمالي وجبات</div><div className="mt-1 text-[8px] text-white/15">🍽️ {yearData.totalMeals} | 🍿 {yearData.totalExtras}</div></div>
+        </div>
+
+        <div className="glass-card rounded-2xl p-4">
+          <h3 className="text-xs text-white/40 font-medium text-right mb-3">📊 إجمالي السنة</h3>
+          <div className="grid grid-cols-3 gap-3">
+            <div className="text-center"><div className="text-sm font-bold text-blue-400">{Math.round(yearData.totalProtein / 1000).toFixed(1)}k</div><div className="text-[8px] text-white/20">💪 بروتين (g)</div></div>
+            <div className="text-center"><div className="text-sm font-bold text-amber-400">{Math.round(yearData.totalCarbs / 1000).toFixed(1)}k</div><div className="text-[8px] text-white/20">🌾 كارب (g)</div></div>
+            <div className="text-center"><div className="text-sm font-bold text-pink-400">{Math.round(yearData.totalFat / 1000).toFixed(1)}k</div><div className="text-[8px] text-white/20">🧈 دهون (g)</div></div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // ===== العرض الرئيسي =====
   return (
     <div className="space-y-4">
-      {/* View Selector */}
-      <div className="flex gap-1 bg-white/[0.03] rounded-2xl p-1 flex-wrap">
+      <div className="flex gap-1 bg-white/[0.03] rounded-2xl p-1">
         {[
           { id: 'daily', label: '📅 يومي', icon: <Calendar size={14} /> },
           { id: 'monthly', label: '📊 شهري', icon: <BarChart3 size={14} /> },
           { id: 'yearly', label: '📈 سنوي', icon: <PieChart size={14} /> },
-          { id: 'estimates', label: '⚖️ تقديرات', icon: <Weight size={14} /> },
         ].map((item) => (
           <motion.button
             key={item.id}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
-            onClick={() => setView(item.id as any)}
+            onClick={() => setView(item.id as 'daily' | 'monthly' | 'yearly')}
             className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-medium transition-all ${
-              view === item.id
-                ? 'bg-gradient-to-r from-primary-500/30 to-emerald-500/30 text-white'
-                : 'text-white/30 hover:text-white/50'
+              view === item.id ? 'bg-gradient-to-r from-primary-500/30 to-emerald-500/30 text-white' : 'text-white/30 hover:text-white/50'
             }`}
           >
             {item.icon}
@@ -743,26 +397,20 @@ export default function StatsTab({ profile, eatenFoods, botToken, chatId, onSend
         ))}
       </div>
 
-      {/* Content */}
       <AnimatePresence mode="wait">
-        <motion.div
-          key={view}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20 }}
-          transition={{ duration: 0.3 }}
-        >
-          {view === 'estimates' ? (
-            renderEstimates()
-          ) : view === 'daily' ? (
-            renderDailyView()
-          ) : view === 'monthly' ? (
-            renderMonthlyView()
-          ) : (
-            renderYearlyView()
-          )}
+        <motion.div key={view} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3 }}>
+          {view === 'daily' && renderDailyView()}
+          {view === 'monthly' && renderMonthlyView()}
+          {view === 'yearly' && renderYearlyView()}
         </motion.div>
       </AnimatePresence>
+
+      <div className="glass-card rounded-2xl p-4 border border-white/[0.03]">
+        <div className="flex items-center justify-between text-[9px] text-white/20">
+          <span>📊 إجمالي أيام التسجيل: {statsData.totalDaysLogged}</span>
+          <span>📅 آخر تحديث: {statsData.dailyStats.length > 0 ? statsData.dailyStats[statsData.dailyStats.length - 1].date : 'لا يوجد'}</span>
+        </div>
+      </div>
     </div>
   );
 }
