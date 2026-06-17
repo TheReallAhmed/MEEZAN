@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Save, RotateCcw, Sparkles, ListChecks, Plus, X, StickyNote, Clock } from 'lucide-react';
+import { Save, RotateCcw, Sparkles, ListChecks, Plus, X, StickyNote, Clock, UtensilsCrossed } from 'lucide-react';
 import FoodSearch from './FoodSearch';
 import type { FoodEntry, NutritionValues, SavedMeal, UserProfile, DailyEatenFood } from '../types';
 import { unitLabels } from '../data/foodDatabase';
@@ -58,20 +58,19 @@ export default function TrackerTab({
   const [mealType, setMealType] = useState<'وجبة رئيسية' | 'سناك' | 'مشروب' | 'حلويات' | 'فواكه'>('سناك');
   const [notes, setNotes] = useState('');
 
-  // حساب إجمالي اليوم من eatenFoods
+  // حساب أكلات اليوم
   const today = new Date().toISOString().split('T')[0];
   const todayFoods = eatenFoods.filter(f => {
     const date = new Date(f.eatenAt).toISOString().split('T')[0];
     return date === today;
   });
 
-  // دالة لإضافة طعام من البحث إلى قائمة اليوم
-  function handleAddFoodFromSearch(entry: FoodEntry) {
+  // ===== إضافة طعام من مودال "أضف أكل اليوم" =====
+  function handleAddFoodFromModal(entry: FoodEntry) {
     const newFood: DailyEatenFood = {
       id: Date.now().toString() + Math.random().toString(36).slice(2),
-      foodName: entry.foodName,
-      foodNameAr: entry.foodNameAr,
-      category: entry.category,
+      name: entry.foodName,
+      nameAr: entry.foodNameAr,
       nutrition: entry.nutrition,
       quantity: entry.quantity,
       unit: entry.unit,
@@ -79,6 +78,7 @@ export default function TrackerTab({
       mealType: mealType,
       notes: notes.trim() || undefined,
       source: 'manual',
+      isMeal: false,
     };
     onAddFoodToToday(newFood);
     setSelectedFood(null);
@@ -86,22 +86,19 @@ export default function TrackerTab({
     setShowFoodModal(false);
   }
 
-  // دالة لحفظ كل الأكلات كوجبة
+  // ===== حفظ أكلات اليوم كوجبة =====
   function handleSaveMeal() {
     if (!mealName.trim() || todayFoods.length === 0) return;
     
-    // تحويل DailyEatenFood إلى FoodEntry
     const entries = todayFoods.map(f => ({
       id: f.id,
       foodId: f.id,
-      foodName: f.foodName,
-      foodNameAr: f.foodNameAr,
+      foodName: f.name,
+      foodNameAr: f.nameAr,
       quantity: f.quantity,
       unit: f.unit,
       nutrition: f.nutrition,
-      category: f.category,
-      eatenAt: f.eatenAt,
-      mealType: f.mealType,
+      category: 'prepared',
     }));
 
     const total = sumNutrition(entries);
@@ -122,12 +119,12 @@ export default function TrackerTab({
 
   return (
     <div className="space-y-6">
-      {/* ===== زر إضافة أكل اليوم ===== */}
+      {/* ===== قسم "أضف أكل اليوم" ===== */}
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ type: 'spring', bounce: 0.2 }}
-        className="glass-card rounded-3xl p-5 sm:p-6"
+        className="glass-card rounded-3xl p-5 sm:p-6 border border-primary-500/10"
       >
         <div className="flex items-center justify-between">
           <motion.button
@@ -140,37 +137,53 @@ export default function TrackerTab({
             أضف أكل اليوم
           </motion.button>
           <h2 className="text-base font-bold text-white/80 flex items-center gap-2">
-            <Sparkles size={16} className="text-primary-400" />
-            أضف طعامك
+            <UtensilsCrossed size={16} className="text-primary-400" />
+            أضف أكل اليوم
           </h2>
         </div>
         <p className="text-white/20 text-xs text-right mt-2">أضف طعاماً جديداً إلى قائمة اليوم مع تحديد التصنيف</p>
       </motion.div>
 
-      {/* ===== البحث عن طعام ===== */}
+      {/* ===== قسم "اصنع وجبتك" ===== */}
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.05, type: 'spring', bounce: 0.2 }}
-        className="glass-card rounded-3xl p-5 sm:p-6"
+        className="glass-card rounded-3xl p-5 sm:p-6 border border-emerald-500/10"
       >
-        <h2 className="text-base font-bold text-white/80 text-right mb-4 flex items-center justify-end gap-2">
-          <span className="text-sm text-white/30">🔍</span>
-          بحث سريع
-        </h2>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex gap-2">
+            {todayFoods.length > 0 && (
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setShowSaveDialog(true)}
+                className="btn-glow text-xs flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-white font-medium"
+              >
+                <Save size={13} />
+                حفظ كوجبة
+              </motion.button>
+            )}
+          </div>
+          <h2 className="text-base font-bold text-white/80 flex items-center gap-2">
+            <Sparkles size={16} className="text-amber-400" />
+            اصنع وجبتك
+          </h2>
+        </div>
+        <p className="text-white/20 text-xs text-right mb-3">أضف أطعمة من البحث لتكوين وجبتك ثم احفظها في "وجباتي"</p>
         <FoodSearch onAddEntry={(entry) => {
           // إضافة مباشرة مع تصنيف افتراضي
           const newFood: DailyEatenFood = {
             id: Date.now().toString() + Math.random().toString(36).slice(2),
-            foodName: entry.foodName,
-            foodNameAr: entry.foodNameAr,
-            category: entry.category,
+            name: entry.foodName,
+            nameAr: entry.foodNameAr,
             nutrition: entry.nutrition,
             quantity: entry.quantity,
             unit: entry.unit,
             eatenAt: new Date().toISOString(),
             mealType: 'وجبة رئيسية',
             source: 'quick_add',
+            isMeal: false,
           };
           onAddFoodToToday(newFood);
         }} />
@@ -195,16 +208,6 @@ export default function TrackerTab({
                 <RotateCcw size={13} />
                 مسح اليوم
               </motion.button>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setShowSaveDialog(true)}
-                disabled={todayFoods.length === 0}
-                className="btn-glow text-xs flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-white font-medium disabled:opacity-30"
-              >
-                <Save size={13} />
-                حفظ كوجبة
-              </motion.button>
             </div>
           )}
           <h2 className="text-base font-bold text-white/80 flex items-center gap-2">
@@ -228,7 +231,7 @@ export default function TrackerTab({
               🍽️
             </motion.div>
             <p className="text-white/20 text-base font-medium">لم تأكل أي شيء اليوم</p>
-            <p className="text-white/10 text-sm mt-1">اضغط على "أضف أكل اليوم" أو ابحث عن طعام</p>
+            <p className="text-white/10 text-sm mt-1">اضغط على "أضف أكل اليوم" أو ابحث في "اصنع وجبتك"</p>
           </div>
         ) : (
           <div className="space-y-2">
@@ -249,6 +252,9 @@ export default function TrackerTab({
                   'فواكه': 'border-green-500/30 bg-green-500/10 text-green-400',
                 };
 
+                // أيقونة خاصة للوجبات الكاملة من "وجباتي"
+                const isSavedMeal = food.isMeal && food.source === 'saved_meal';
+
                 return (
                   <motion.div
                     key={food.id}
@@ -257,7 +263,9 @@ export default function TrackerTab({
                     animate={{ opacity: 1, x: 0, scale: 1 }}
                     exit={{ opacity: 0, x: -60, scale: 0.8 }}
                     transition={{ type: 'spring', bounce: 0.2, delay: index * 0.03 }}
-                    className="group bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.04] hover:border-white/[0.08] rounded-2xl p-3.5 flex items-center gap-3 transition-all duration-300"
+                    className={`group bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.04] hover:border-white/[0.08] rounded-2xl p-3.5 flex items-center gap-3 transition-all duration-300 ${
+                      isSavedMeal ? 'border-primary-500/30 bg-primary-500/5' : ''
+                    }`}
                   >
                     <motion.button
                       whileHover={{ scale: 1.15 }}
@@ -269,6 +277,11 @@ export default function TrackerTab({
                     </motion.button>
 
                     <div className="flex-1 flex flex-wrap gap-1.5 items-center">
+                      {isSavedMeal && (
+                        <span className="text-[10px] px-2 py-0.5 rounded-full font-medium border border-primary-500/30 bg-primary-500/10 text-primary-400">
+                          📦 وجبة كاملة
+                        </span>
+                      )}
                       <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium border ${mealTypeColors[food.mealType]}`}>
                         {mealTypeEmojis[food.mealType]} {food.mealType}
                       </span>
@@ -288,7 +301,10 @@ export default function TrackerTab({
 
                     <div className="text-right shrink-0">
                       <div className="text-white/80 font-semibold text-sm">
-                        {food.foodNameAr}
+                        {food.nameAr}
+                        {isSavedMeal && (
+                          <span className="text-[8px] text-primary-400/50 mr-1">(وجبة)</span>
+                        )}
                       </div>
                       <div className="text-white/20 text-xs mt-0.5 font-medium">
                         {food.quantity} {unitLabels[food.unit] || food.unit}
@@ -318,7 +334,7 @@ export default function TrackerTab({
         )}
       </motion.div>
 
-      {/* ===== مودال إضافة أكل اليوم ===== */}
+      {/* ===== مودال "أضف أكل اليوم" ===== */}
       <AnimatePresence>
         {showFoodModal && (
           <motion.div
@@ -421,7 +437,7 @@ export default function TrackerTab({
                   whileTap={{ scale: 0.98 }}
                   onClick={() => {
                     if (!selectedFood) return;
-                    handleAddFoodFromSearch(selectedFood);
+                    handleAddFoodFromModal(selectedFood);
                   }}
                   disabled={!selectedFood}
                   className="flex-1 py-3 rounded-2xl text-white font-bold bg-gradient-to-r from-primary-500 to-emerald-500 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-lg shadow-primary-500/20"

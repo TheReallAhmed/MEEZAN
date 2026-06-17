@@ -122,7 +122,7 @@ export default function MealsTab({
           🍱
         </motion.div>
         <h3 className="text-lg font-bold text-white/20 mb-2">لا توجد وجبات محفوظة</h3>
-        <p className="text-white/10 text-sm">أضف أطعمة في الحاسبة واحفظها كوجبة</p>
+        <p className="text-white/10 text-sm">اذهب إلى "الحاسبة" واصنع وجبتك ثم احفظها</p>
       </motion.div>
     );
   }
@@ -360,7 +360,7 @@ export default function MealsTab({
                       })}
 
                       <div className="flex gap-2 mt-4 flex-wrap">
-                        {/* زر إضافة الوجبة إلى اليوم */}
+                        {/* زر إضافة الوجبة كاملة إلى اليوم */}
                         <motion.button
                           whileHover={{ scale: 1.03 }}
                           whileTap={{ scale: 0.97 }}
@@ -368,7 +368,7 @@ export default function MealsTab({
                           className="flex-1 flex items-center justify-center gap-1.5 py-3 rounded-xl bg-gradient-to-r from-primary-500/10 to-emerald-500/5 text-primary-400/70 hover:text-primary-400 transition-all text-xs font-medium border border-primary-500/10 hover:border-primary-500/30"
                         >
                           <PlusCircle size={14} />
-                          أضف لقائمة اليوم
+                          أضف كوجبة كاملة
                         </motion.button>
 
                         <motion.button

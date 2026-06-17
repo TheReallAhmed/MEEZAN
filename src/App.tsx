@@ -35,7 +35,33 @@ export default function App() {
   const [chatId, setChatId] = useState(() => loadFromLS('mizan_chat_id', ''));
   const [toast, setToast] = useState<string | null>(null);
 
-  const total = sumNutrition(entries);
+  // ===== حساب إجمالي اليوم =====
+  function getTodayTotal() {
+    const today = new Date().toISOString().split('T')[0];
+    const todayFoods = eatenFoods.filter(f => {
+      const date = new Date(f.eatenAt).toISOString().split('T')[0];
+      return date === today;
+    });
+
+    const entries = todayFoods.map(f => ({
+      id: f.id,
+      foodId: f.id,
+      foodName: f.name,
+      foodNameAr: f.nameAr,
+      quantity: f.quantity,
+      unit: f.unit,
+      nutrition: f.nutrition,
+      category: 'prepared',
+    }));
+
+    return {
+      total: sumNutrition(entries),
+      count: todayFoods.length,
+      foods: todayFoods,
+    };
+  }
+
+  const todayData = getTodayTotal();
 
   // Persist
   useEffect(() => { saveToLS('mizan_meals', meals); }, [meals]);
@@ -49,8 +75,10 @@ export default function App() {
     setTimeout(() => setToast(null), 3000);
   }
 
+  // ===== إدارة الوجبات المحفوظة =====
   function handleSaveMeal(meal: SavedMeal) {
     setMeals((prev) => [meal, ...prev]);
+    showToast(`✅ تم حفظ "${meal.name}" في وجباتي!`);
   }
 
   function handleDeleteMeal(id: string) {
@@ -58,53 +86,41 @@ export default function App() {
     showToast('🗑️ تم حذف الوجبة');
   }
 
-  // دالة لإضافة طعام إلى قائمة اليوم
+  // ===== إدارة أكلات اليوم =====
   function handleAddFoodToToday(food: DailyEatenFood) {
     setEatenFoods(prev => [food, ...prev]);
-    showToast(`✅ تم إضافة ${food.foodNameAr} إلى قائمة اليوم!`);
+    showToast(`✅ تم إضافة ${food.nameAr} إلى قائمة اليوم!`);
   }
 
-  // دالة لإزالة طعام من قائمة اليوم
   function handleRemoveFoodFromToday(id: string) {
     setEatenFoods(prev => prev.filter(f => f.id !== id));
   }
 
-  // دالة لإضافة وجبة محفوظة إلى قائمة اليوم
-  function handleAddSavedMealToToday(meal: SavedMeal) {
-    const today = new Date().toISOString();
-    const newFoods: DailyEatenFood[] = meal.entries.map(entry => ({
-      id: Date.now().toString() + Math.random().toString(36).slice(2),
-      foodName: entry.foodName,
-      foodNameAr: entry.foodNameAr,
-      category: entry.category,
-      nutrition: entry.nutrition,
-      quantity: entry.quantity,
-      unit: entry.unit,
-      eatenAt: today,
-      mealType: 'وجبة رئيسية',
-      notes: `من وجبة ${meal.name}`,
-      source: 'saved_meal',
+  function handleClearToday() {
+    const today = new Date().toISOString().split('T')[0];
+    setEatenFoods(prev => prev.filter(f => {
+      const date = new Date(f.eatenAt).toISOString().split('T')[0];
+      return date !== today;
     }));
-    setEatenFoods(prev => [...newFoods, ...prev]);
-    showToast(`✅ تم إضافة "${meal.name}" إلى قائمة اليوم!`);
+    showToast('🗑️ تم مسح قائمة اليوم');
   }
 
-  // دالة لإضافة وجبة محفوظة كاملة كوجبة واحدة
-  function handleAddMealAsOne(meal: SavedMeal) {
+  // ===== إضافة وجبة محفوظة إلى أكلات اليوم (كوجبة كاملة) =====
+  function handleAddMealToToday(meal: SavedMeal) {
     const today = new Date().toISOString();
-    const totalNutrition = meal.totalNutrition;
     const newFood: DailyEatenFood = {
       id: Date.now().toString() + Math.random().toString(36).slice(2),
-      foodName: meal.name,
-      foodNameAr: meal.name,
-      category: 'prepared',
-      nutrition: totalNutrition,
+      name: meal.name,
+      nameAr: meal.name,
+      nutrition: meal.totalNutrition,
       quantity: 1,
       unit: 'وجبة',
       eatenAt: today,
       mealType: 'وجبة رئيسية',
       notes: `وجبة كاملة: ${meal.name}`,
       source: 'saved_meal',
+      isMeal: true,
+      mealId: meal.id,
     };
     setEatenFoods(prev => [newFood, ...prev]);
     showToast(`✅ تم إضافة "${meal.name}" كوجبة كاملة!`);
@@ -115,44 +131,7 @@ export default function App() {
     showToast('✅ تم حفظ بياناتك وأهدافك!');
   }
 
-  // حساب إجمالي اليوم من eatenFoods
-  function getTodayTotal() {
-    const today = new Date().toISOString().split('T')[0];
-    const todayFoods = eatenFoods.filter(f => {
-      const date = new Date(f.eatenAt).toISOString().split('T')[0];
-      return date === today;
-    });
-
-    const entries = todayFoods.map(f => ({
-      id: f.id,
-      foodId: f.id,
-      foodName: f.foodName,
-      foodNameAr: f.foodNameAr,
-      quantity: f.quantity,
-      unit: f.unit,
-      nutrition: f.nutrition,
-      category: f.category,
-      eatenAt: f.eatenAt,
-      mealType: f.mealType,
-    }));
-
-    return {
-      total: sumNutrition(entries),
-      count: todayFoods.length,
-      foods: todayFoods,
-    };
-  }
-
-  // مسح قائمة اليوم
-  function clearToday() {
-    const today = new Date().toISOString().split('T')[0];
-    setEatenFoods(prev => prev.filter(f => {
-      const date = new Date(f.eatenAt).toISOString().split('T')[0];
-      return date !== today;
-    }));
-    showToast('🗑️ تم مسح قائمة اليوم');
-  }
-
+  // ===== تيليغرام =====
   function formatMealMessage(meal: SavedMeal): string {
     const t = meal.totalNutrition;
     const date = new Date(meal.createdAt).toLocaleDateString('ar', { year: 'numeric', month: 'long', day: 'numeric' });
@@ -295,9 +274,6 @@ export default function App() {
     }
   }
 
-  const todayData = getTodayTotal();
-  const today = new Date().toISOString().split('T')[0];
-
   return (
     <div className="min-h-screen text-white relative">
       <div className="bg-mesh" />
@@ -348,7 +324,7 @@ export default function App() {
                   eatenFoods={eatenFoods}
                   onAddFoodToToday={handleAddFoodToToday}
                   onRemoveFoodFromToday={handleRemoveFoodFromToday}
-                  onClearToday={clearToday}
+                  onClearToday={handleClearToday}
                   profile={profile}
                   todayTotal={todayData.total}
                 />
@@ -380,7 +356,7 @@ export default function App() {
                   onDeleteMeal={handleDeleteMeal}
                   onSendToTelegram={sendToTelegram}
                   telegramConfigured={!!botToken && !!chatId}
-                  onAddMealToToday={handleAddSavedMealToToday}
+                  onAddMealToToday={handleAddMealToToday}
                 />
               </motion.div>
             )}

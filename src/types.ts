@@ -29,12 +29,6 @@ export interface UserProfile {
   targetFat: number;
 }
 
-export interface DailyLog {
-  date: string;
-  entries: FoodEntry[];
-  totalNutrition: NutritionValues;
-}
-
 export interface FoodEntry {
   id: string;
   foodId: string;
@@ -44,8 +38,6 @@ export interface FoodEntry {
   unit: string;
   nutrition: NutritionValues;
   category: string;
-  eatenAt: string;
-  mealType?: 'وجبة رئيسية' | 'سناك' | 'مشروب' | 'حلويات' | 'فواكه';
 }
 
 export interface SavedMeal {
@@ -58,12 +50,11 @@ export interface SavedMeal {
 
 export type TabType = 'tracker' | 'profile' | 'meals' | 'telegram' | 'stats';
 
-// ========== أنواع الأكلات المأكولة اليوم ==========
+// ===== أكلات اليوم =====
 export interface DailyEatenFood {
   id: string;
-  foodName: string;
-  foodNameAr: string;
-  category: string;
+  name: string; // اسم الوجبة أو الطعام
+  nameAr: string;
   nutrition: NutritionValues;
   quantity: number;
   unit: string;
@@ -71,9 +62,11 @@ export interface DailyEatenFood {
   mealType: 'وجبة رئيسية' | 'سناك' | 'مشروب' | 'حلويات' | 'فواكه';
   notes?: string;
   source: 'manual' | 'saved_meal' | 'quick_add';
+  isMeal?: boolean; // true إذا كانت وجبة كاملة من وجباتي
+  mealId?: string; // ID الوجبة الأصلية
 }
 
-// ========== أنواع الإحصائيات ==========
+// ===== الإحصائيات =====
 export interface DailyStats {
   date: string;
   totalCalories: number;
@@ -121,13 +114,4 @@ export interface YearlyStats {
   totalDaysLogged: number;
   totalMeals: number;
   totalExtras: number;
-}
-
-export interface StatsData {
-  dailyStats: DailyStats[];
-  monthlyStats: MonthlyStats[];
-  yearlyStats: YearlyStats[];
-  currentStreak: number;
-  bestStreak: number;
-  totalDaysLogged: number;
 }
