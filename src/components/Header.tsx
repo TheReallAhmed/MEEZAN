@@ -12,11 +12,11 @@ interface HeaderProps {
 }
 
 const tabs: { id: TabType; label: string; icon: React.ReactNode }[] = [
-  { id: 'tracker', label: 'الحاسبة', icon: <Utensils size={18} /> },
-  { id: 'meals', label: 'وجباتي', icon: <BookOpen size={18} /> },
-  { id: 'stats', label: 'إحصائياتي', icon: <BarChart3 size={18} /> },
-  { id: 'profile', label: 'ملفي', icon: <User size={18} /> },
-  { id: 'telegram', label: 'تيليغرام', icon: <Send size={18} /> },
+  { id: 'tracker', label: 'الحاسبة', icon: <Utensils size={16} /> },
+  { id: 'meals', label: 'وجباتي', icon: <BookOpen size={16} /> },
+  { id: 'stats', label: 'الإحصائيات', icon: <BarChart3 size={16} /> },
+  { id: 'profile', label: 'ملفي', icon: <User size={16} /> },
+  { id: 'telegram', label: 'تيليغرام', icon: <Send size={16} /> },
 ];
 
 function AnimatedNumber({ value }: { value: number }) {
@@ -57,35 +57,35 @@ export default function Header({ activeTab, setActiveTab, totalNutrition, profil
   return (
     <header className="sticky top-0 z-50 glass border-b border-white/[0.05]">
       <div className="max-w-4xl mx-auto px-4">
-        {/* Top Row: Logo (Right) + Tab Navigation (Left) */}
+        {/* الصف العلوي: اللوجو باليمين والتابز بالشمال */}
         <div className="flex items-center justify-between py-2">
-          {/* Logo - RIGHT side */}
+          {/* ===== اللوجو والاسم - الجانب الأيمن ===== */}
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="flex items-center gap-2 order-1"
+            className="flex items-center gap-2"
           >
-            <span className="text-xl">⚖️</span>
-            <div className="hidden sm:block">
-              <h1 className="text-sm font-bold bg-gradient-to-r from-primary-400 to-emerald-400 bg-clip-text text-transparent">
+            <span className="text-2xl">⚖️</span>
+            <div>
+              <h1 className="text-base font-bold bg-gradient-to-r from-primary-400 to-emerald-400 bg-clip-text text-transparent">
                 مِيزان
               </h1>
-              <p className="text-[8px] text-white/20 font-medium">حاسبة التغذية الذكية</p>
+              <p className="text-[8px] text-white/25 font-medium">حاسبة التغذية الذكية</p>
             </div>
           </motion.div>
 
-          {/* Tab Navigation - LEFT side */}
-          <nav className="flex gap-1 bg-white/[0.03] rounded-2xl p-1 order-2">
+          {/* ===== التابز - الجانب الأيسر ===== */}
+          <nav className="flex gap-0.5 bg-white/[0.04] rounded-2xl p-0.5">
             {tabs.map((tab) => (
               <motion.button
                 key={tab.id}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all duration-300 ${
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[11px] font-medium transition-all duration-300 ${
                   activeTab === tab.id
-                    ? 'bg-gradient-to-r from-primary-500/30 to-emerald-500/30 text-white shadow-lg shadow-primary-500/10'
-                    : 'text-white/30 hover:text-white/60'
+                    ? 'bg-gradient-to-r from-primary-500/40 to-emerald-500/40 text-white shadow-lg shadow-primary-500/20'
+                    : 'text-white/30 hover:text-white/60 hover:bg-white/[0.05]'
                 }`}
               >
                 {tab.icon}
@@ -95,7 +95,7 @@ export default function Header({ activeTab, setActiveTab, totalNutrition, profil
           </nav>
         </div>
 
-        {/* Summary Bar - Main Stats */}
+        {/* ===== شريط الإحصائيات ===== */}
         {hasData && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
@@ -105,17 +105,17 @@ export default function Header({ activeTab, setActiveTab, totalNutrition, profil
           >
             <div className="bg-gradient-to-r from-primary-500/5 via-emerald-500/5 to-amber-500/5 rounded-2xl p-2.5 border border-white/[0.04]">
               <div className="flex items-center justify-between gap-2 flex-wrap">
-                {/* Left side: Goal + Calories */}
+                {/* ===== الجهة اليمنى: الهدف + السعرات ===== */}
                 <div className="flex items-center gap-3">
                   {profile && (
-                    <div className="flex items-center gap-1 text-[9px] text-white/30 bg-white/[0.03] px-2 py-0.5 rounded-full">
+                    <div className="flex items-center gap-1 text-[9px] text-white/30 bg-white/[0.04] px-2.5 py-0.5 rounded-full border border-white/[0.04]">
                       <span>{goalEmoji}</span>
                       <span>{goalLabel}</span>
                     </div>
                   )}
                   
                   <div className="flex items-baseline gap-1">
-                    <span className="text-lg font-black text-orange-400" style={{ textShadow: '0 0 30px rgba(249, 115, 22, 0.3)' }}>
+                    <span className="text-xl font-black text-orange-400" style={{ textShadow: '0 0 30px rgba(249, 115, 22, 0.3)' }}>
                       <AnimatedNumber value={displayTotal.calories} />
                     </span>
                     <span className="text-[9px] text-white/30">سعرة</span>
@@ -127,9 +127,9 @@ export default function Header({ activeTab, setActiveTab, totalNutrition, profil
                   </div>
                 </div>
 
-                {/* Right side: Macro Stats */}
+                {/* ===== الجهة اليسرى: الماكروز ===== */}
                 <div className="flex items-center gap-2 flex-wrap">
-                  {/* Protein */}
+                  {/* البروتين */}
                   <div className="flex items-center gap-1">
                     <div className="flex items-center gap-0.5">
                       <Dumbbell size={11} className="text-blue-400" />
@@ -138,7 +138,7 @@ export default function Header({ activeTab, setActiveTab, totalNutrition, profil
                       </span>
                       <span className="text-[7px] text-white/20">g</span>
                     </div>
-                    <div className="w-10 h-1 bg-white/[0.06] rounded-full overflow-hidden">
+                    <div className="w-10 h-1 bg-white/[0.08] rounded-full overflow-hidden">
                       <motion.div
                         initial={{ width: 0 }}
                         animate={{ width: `${proteinPercent}%` }}
@@ -148,7 +148,7 @@ export default function Header({ activeTab, setActiveTab, totalNutrition, profil
                     </div>
                   </div>
 
-                  {/* Carbs */}
+                  {/* الكارب */}
                   <div className="flex items-center gap-1">
                     <div className="flex items-center gap-0.5">
                       <Wheat size={11} className="text-amber-400" />
@@ -157,7 +157,7 @@ export default function Header({ activeTab, setActiveTab, totalNutrition, profil
                       </span>
                       <span className="text-[7px] text-white/20">g</span>
                     </div>
-                    <div className="w-10 h-1 bg-white/[0.06] rounded-full overflow-hidden">
+                    <div className="w-10 h-1 bg-white/[0.08] rounded-full overflow-hidden">
                       <motion.div
                         initial={{ width: 0 }}
                         animate={{ width: `${carbsPercent}%` }}
@@ -167,7 +167,7 @@ export default function Header({ activeTab, setActiveTab, totalNutrition, profil
                     </div>
                   </div>
 
-                  {/* Fat */}
+                  {/* الدهون */}
                   <div className="flex items-center gap-1">
                     <div className="flex items-center gap-0.5">
                       <Droplet size={11} className="text-pink-400" />
@@ -176,7 +176,7 @@ export default function Header({ activeTab, setActiveTab, totalNutrition, profil
                       </span>
                       <span className="text-[7px] text-white/20">g</span>
                     </div>
-                    <div className="w-10 h-1 bg-white/[0.06] rounded-full overflow-hidden">
+                    <div className="w-10 h-1 bg-white/[0.08] rounded-full overflow-hidden">
                       <motion.div
                         initial={{ width: 0 }}
                         animate={{ width: `${fatPercent}%` }}
@@ -186,28 +186,28 @@ export default function Header({ activeTab, setActiveTab, totalNutrition, profil
                     </div>
                   </div>
 
-                  {/* Calories Progress Ring */}
+                  {/* دائرة النسبة المئوية */}
                   <div className="hidden sm:flex items-center gap-1">
-                    <div className="relative w-5 h-5">
-                      <svg className="w-5 h-5 -rotate-90">
+                    <div className="relative w-6 h-6">
+                      <svg className="w-6 h-6 -rotate-90">
                         <circle
-                          cx="10"
-                          cy="10"
-                          r="8"
+                          cx="12"
+                          cy="12"
+                          r="9"
                           stroke="rgba(255,255,255,0.06)"
                           strokeWidth="2.5"
                           fill="none"
                         />
                         <motion.circle
-                          cx="10"
-                          cy="10"
-                          r="8"
+                          cx="12"
+                          cy="12"
+                          r="9"
                           stroke="url(#calGrad)"
                           strokeWidth="2.5"
                           fill="none"
                           strokeLinecap="round"
-                          initial={{ strokeDasharray: '0 50.27' }}
-                          animate={{ strokeDasharray: `${(calPercent / 100) * 50.27} 50.27` }}
+                          initial={{ strokeDasharray: '0 56.55' }}
+                          animate={{ strokeDasharray: `${(calPercent / 100) * 56.55} 56.55` }}
                           transition={{ duration: 1, ease: 'easeOut' }}
                         />
                         <defs>
@@ -217,22 +217,22 @@ export default function Header({ activeTab, setActiveTab, totalNutrition, profil
                           </linearGradient>
                         </defs>
                       </svg>
-                      <span className="absolute inset-0 flex items-center justify-center text-[5px] font-bold text-white/40">
+                      <span className="absolute inset-0 flex items-center justify-center text-[6px] font-bold text-white/40">
                         {Math.round(calPercent)}%
                       </span>
                     </div>
                   </div>
                 </div>
 
-                {/* Item count badge */}
+                {/* عدد العناصر */}
                 {todayCount && todayCount > 0 && (
-                  <span className="text-[7px] text-white/20 bg-white/[0.03] px-1.5 py-0.5 rounded-full">
+                  <span className="text-[7px] text-white/20 bg-white/[0.04] px-2 py-0.5 rounded-full border border-white/[0.03]">
                     {todayCount} عناصر
                   </span>
                 )}
               </div>
 
-              {/* Additional details */}
+              {/* ===== التفاصيل الإضافية ===== */}
               <div className="flex items-center justify-end gap-3 mt-1 text-[7px] text-white/15">
                 <span>🥬 ألياف: {Math.round(displayTotal.fiber)}g</span>
                 <span>🍬 سكر: {Math.round(displayTotal.sugar)}g</span>

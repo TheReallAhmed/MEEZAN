@@ -2,7 +2,8 @@ import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Calendar, ChevronLeft, ChevronRight, BarChart3, PieChart,
-  Dumbbell, Wheat, Droplet, Award, Flame, Target
+  Dumbbell, Wheat, Droplet, Award, Flame, Target, TrendingUp, 
+  TrendingDown, Activity, Weight, Zap, Crown, Medal, GitBranch
 } from 'lucide-react';
 import type { 
   DailyStats, MonthlyStats, YearlyStats, 
@@ -13,6 +14,34 @@ interface StatsTabProps {
   profile: UserProfile | null;
   eatenMeals: EatenMeal[];
   eatenExtras: EatenExtraFood[];
+}
+
+// حساب السعرات الزائدة/الناقصة
+function calculateCalorieSurplus(caloriesEaten: number, targetCalories: number): number {
+  return caloriesEaten - targetCalories;
+}
+
+// تقدير تغير الوزن بناءً على السعرات (1 كجم دهون = 7700 سعرة)
+function estimateWeightChange(calorieSurplus: number, days: number): number {
+  const totalSurplus = calorieSurplus * days;
+  return totalSurplus / 7700; // بالكيلوجرام
+}
+
+// تقدير نسبة العضلات المضافة (تقديرية)
+function estimateMuscleGain(calorieSurplus: number, proteinIntake: number, targetProtein: number, days: number): number {
+  // إذا كان في تضخيم وبروتين كافي
+  if (calorieSurplus > 0 && proteinIntake >= targetProtein * 0.8) {
+    // تقدير: 20-30% من الوزن الزائد عضلات
+    const totalSurplus = calorieSurplus * days;
+    const muscleRatio = Math.min(proteinIntake / targetProtein, 1.5) * 0.25;
+    return (totalSurplus / 7700) * muscleRatio;
+  }
+  // إذا كان في تنشيف
+  if (calorieSurplus < 0 && proteinIntake >= targetProtein * 0.9) {
+    // الحفاظ على العضلات أثناء التنشيف
+    return 0;
+  }
+  return 0;
 }
 
 export default function StatsTab({ profile, eatenMeals, eatenExtras }: StatsTabProps) {
@@ -79,6 +108,7 @@ export default function StatsTab({ profile, eatenMeals, eatenExtras }: StatsTabP
     const dailyStats: DailyStats[] = Array.from(dailyMap.values()).map(stat => {
       if (profile) {
         const calPercent = (stat.totalCalories / profile.targetCalories) * 100;
+        // هدف: 80-120% من الهدف يعتبر محقق
         stat.metGoal = calPercent >= 80 && calPercent <= 120;
       } else {
         stat.metGoal = stat.totalCalories >= 1500 && stat.totalCalories <= 2500;
@@ -229,6 +259,341 @@ export default function StatsTab({ profile, eatenMeals, eatenExtras }: StatsTabP
   }, [eatenMeals, eatenExtras, profile]);
 
   // ============================================
+  // حساب تقديرات الوزن
+  // ============================================
+  const weightEstimates = useMemo(() => {
+    if (!profile) return null;
+
+    const targetCalories = profile.targetCalories;
+    const currentWeight = profile.weight;
+    const goal = profile.goal;
+
+    // إجمالي الأيام المسجلة
+    const totalDays = statsData.totalDaysLogged;
+
+    // حساب متوسط السعرات اليومية من الأيام المسجلة
+    const avgDailyCalories = statsData.dailyStats.length > 0
+      ? statsData.dailyStats.reduce((sum, d) => sum + d.totalCalories, 0) / statsData.dailyStats.length
+      : 0;
+
+    // حساب متوسط البروتين اليومي
+    const avgDailyProtein = statsData.dailyStats.length > 0
+      ? statsData.dailyStats.reduce((sum, d) => sum + d.totalProtein, 0) / statsData.dailyStats.length
+      : 0;
+
+    // السعرات الزائدة/الناقصة يومياً
+    const dailySurplus = avgDailyCalories - targetCalories;
+
+    // تقدير تغير الوزن الكلي
+    const estimatedWeightChange = estimateWeightChange(dailySurplus, totalDays);
+
+    // تقدير العضلات المضافة
+    const estimatedMuscleGain = estimateMuscleGain(
+      dailySurplus, 
+      avgDailyProtein, 
+      profile.targetProtein, 
+      totalDays
+    );
+
+    // تقدير الدهون المفقودة/المضافة
+    const estimatedFatChange = estimatedWeightChange - estimatedMuscleGain;
+
+    // الوزن المتوقع حالياً
+    const estimatedCurrentWeight = currentWeight + estimatedWeightChange;
+
+    // نسبة تحقيق الهدف
+    const goalAchievementRate = statsData.dailyStats.length > 0
+      ? (statsData.dailyStats.filter(d => d.metGoal).length / statsData.dailyStats.length) * 100
+      : 0;
+
+    // عدد الأيام المتبقية لتحقيق الهدف (تقديري)
+    const kgRemaining = goal === 'bulk' 
+      ? Math.max(0, (currentWeight * 1.1) - estimatedCurrentWeight) // افتراض زيادة 10%
+      : goal === 'cut'
+        ? Math.max(0, estimatedCurrentWeight - (currentWeight * 0.9))
+        : 0;
+
+    const daysToGoal = kgRemaining > 0 && Math.abs(dailySurplus) > 0
+      ? Math.round(kgRemaining / (Math.abs(dailySurplus) / 7700))
+      : 0;
+
+    return {
+      avgDailyCalories,
+      avgDailyProtein,
+      dailySurplus,
+      estimatedWeightChange,
+      estimatedMuscleGain,
+      estimatedFatChange,
+      estimatedCurrentWeight,
+      goalAchievementRate,
+      kgRemaining,
+      daysToGoal,
+      totalDays,
+      goal,
+      targetCalories,
+      currentWeight,
+    };
+  }, [profile, statsData]);
+
+  // ============================================
+  // عرض تقديرات الوزن
+  // ============================================
+  const renderWeightEstimates = () => {
+    if (!weightEstimates) {
+      return (
+        <div className="glass-card rounded-2xl p-6 text-center">
+          <div className="text-4xl mb-3 opacity-20">⚖️</div>
+          <p className="text-white/20 text-sm">أضف ملفك الشخصي لتظهر تقديرات الوزن</p>
+          <p className="text-white/10 text-xs mt-1">اذهب إلى تبويب "ملفي" وأدخل بياناتك</p>
+        </div>
+      );
+    }
+
+    const {
+      avgDailyCalories,
+      avgDailyProtein,
+      dailySurplus,
+      estimatedWeightChange,
+      estimatedMuscleGain,
+      estimatedFatChange,
+      estimatedCurrentWeight,
+      goalAchievementRate,
+      kgRemaining,
+      daysToGoal,
+      totalDays,
+      goal,
+      targetCalories,
+      currentWeight,
+    } = weightEstimates;
+
+    const isBulk = goal === 'bulk';
+    const isCut = goal === 'cut';
+    const isMaintain = goal === 'maintain';
+
+    const goalEmoji = isBulk ? '💪' : isCut ? '🔥' : '⚖️';
+    const goalLabel = isBulk ? 'تضخيم' : isCut ? 'تنشيف' : 'تثبيت';
+    const trendColor = isBulk ? 'text-emerald-400' : isCut ? 'text-orange-400' : 'text-blue-400';
+    const trendIcon = estimatedWeightChange > 0 ? <TrendingUp size={16} /> : <TrendingDown size={16} />;
+
+    return (
+      <div className="space-y-4">
+        {/* بطاقة التقدير الرئيسية */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="glass-card rounded-3xl p-6 border border-primary-500/20 bg-gradient-to-br from-primary-500/5 via-emerald-500/5 to-amber-500/5"
+        >
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2 text-white/30 text-xs bg-white/[0.03] px-3 py-1 rounded-full">
+              <Activity size={12} />
+              <span>تقديرات الوزن والتقدم</span>
+            </div>
+            <h3 className="text-sm font-bold text-white flex items-center gap-2">
+              <Target size={14} className="text-primary-400" />
+              {goalEmoji} {goalLabel}
+            </h3>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {/* الوزن الحالي */}
+            <div className="bg-white/[0.03] rounded-2xl p-4 text-center border border-white/[0.04]">
+              <div className="text-2xl font-black text-white">{currentWeight}</div>
+              <div className="text-[9px] text-white/30">الوزن الحالي (كجم)</div>
+            </div>
+
+            {/* الوزن المتوقع */}
+            <div className="bg-white/[0.03] rounded-2xl p-4 text-center border border-white/[0.04]">
+              <div className={`text-2xl font-black ${trendColor}`}>
+                {estimatedCurrentWeight.toFixed(1)}
+              </div>
+              <div className="text-[9px] text-white/30">الوزن المتوقع</div>
+              <div className="text-[8px] text-white/15 mt-0.5">
+                {estimatedWeightChange > 0 ? '+' : ''}{estimatedWeightChange.toFixed(2)} كجم
+              </div>
+            </div>
+
+            {/* تغير العضلات */}
+            <div className="bg-gradient-to-br from-blue-500/10 to-cyan-500/5 rounded-2xl p-4 text-center border border-blue-500/20">
+              <div className="flex items-center justify-center gap-1">
+                <Dumbbell size={14} className="text-blue-400" />
+                <span className="text-xl font-bold text-blue-400">
+                  {estimatedMuscleGain.toFixed(2)}
+                </span>
+                <span className="text-[9px] text-white/30">كجم</span>
+              </div>
+              <div className="text-[9px] text-white/30">عضلات مضافة</div>
+            </div>
+
+            {/* تغير الدهون */}
+            <div className="bg-gradient-to-br from-orange-500/10 to-red-500/5 rounded-2xl p-4 text-center border border-orange-500/20">
+              <div className="flex items-center justify-center gap-1">
+                <Flame size={14} className="text-orange-400" />
+                <span className={`text-xl font-bold ${estimatedFatChange > 0 ? 'text-orange-400' : 'text-emerald-400'}`}>
+                  {estimatedFatChange > 0 ? '+' : ''}{estimatedFatChange.toFixed(2)}
+                </span>
+                <span className="text-[9px] text-white/30">كجم</span>
+              </div>
+              <div className="text-[9px] text-white/30">
+                {estimatedFatChange > 0 ? 'دهون مضافة' : 'دهون مفقودة'}
+              </div>
+            </div>
+          </div>
+
+          {/* السعرات اليومية */}
+          <div className="grid grid-cols-2 gap-3 mt-3">
+            <div className="bg-white/[0.02] rounded-xl p-3 text-center border border-white/[0.03]">
+              <div className="flex items-center justify-center gap-1 text-orange-400">
+                <Flame size={12} />
+                <span className="text-sm font-bold">{Math.round(avgDailyCalories)}</span>
+                <span className="text-[8px] text-white/30">سعرة</span>
+              </div>
+              <div className="text-[8px] text-white/20">متوسط يومي</div>
+              <div className="text-[7px] text-white/10">
+                الهدف: {targetCalories} سعرة
+                <span className={`mr-1 ${dailySurplus > 0 ? 'text-emerald-400/60' : 'text-orange-400/60'}`}>
+                  ({dailySurplus > 0 ? '+' : ''}{Math.round(dailySurplus)})
+                </span>
+              </div>
+            </div>
+
+            <div className="bg-white/[0.02] rounded-xl p-3 text-center border border-white/[0.03]">
+              <div className="flex items-center justify-center gap-1 text-blue-400">
+                <Dumbbell size={12} />
+                <span className="text-sm font-bold">{Math.round(avgDailyProtein)}</span>
+                <span className="text-[8px] text-white/30">g</span>
+              </div>
+              <div className="text-[8px] text-white/20">بروتين يومي</div>
+              <div className="text-[7px] text-white/10">
+                الهدف: {profile?.targetProtein || 0}g
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* نسبة تحقيق الهدف */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="glass-card rounded-2xl p-4 border border-white/[0.04]"
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-lg">🎯</span>
+              <div>
+                <div className="text-xs text-white/60 font-medium">نسبة تحقيق الهدف</div>
+                <div className="text-[8px] text-white/20">{totalDays} أيام مسجلة</div>
+              </div>
+            </div>
+            <div className="text-right">
+              <span className="text-2xl font-black text-emerald-400">{Math.round(goalAchievementRate)}%</span>
+            </div>
+          </div>
+          <div className="mt-2 h-2 bg-white/[0.06] rounded-full overflow-hidden">
+            <motion.div
+              initial={{ width: 0 }}
+              animate={{ width: `${goalAchievementRate}%` }}
+              transition={{ duration: 1 }}
+              className={`h-full rounded-full ${
+                goalAchievementRate >= 80 ? 'bg-gradient-to-r from-emerald-500 to-green-400' :
+                goalAchievementRate >= 50 ? 'bg-gradient-to-r from-amber-500 to-yellow-400' :
+                'bg-gradient-to-r from-red-500 to-orange-400'
+              }`}
+            />
+          </div>
+          {kgRemaining > 0 && daysToGoal > 0 && (
+            <div className="flex items-center justify-between mt-2 text-[8px] text-white/20">
+              <span>⏳ {daysToGoal} يوم متبقية للهدف</span>
+              <span>📊 {kgRemaining.toFixed(1)} كجم متبقية</span>
+            </div>
+          )}
+        </motion.div>
+
+        {/* نصائح مخصصة */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="glass-card rounded-2xl p-4 border border-white/[0.04] bg-gradient-to-r from-primary-500/5 to-emerald-500/5"
+        >
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-lg">💡</span>
+            <span className="text-xs text-white/40 font-medium">نصائح مخصصة لهدفك</span>
+          </div>
+          <ul className="space-y-1.5 text-[10px] text-white/30">
+            {isBulk && (
+              <>
+                <li className="flex items-start gap-2">
+                  <span className="text-emerald-400/50">•</span>
+                  <span>أنت في مرحلة تضخيم، ركز على زيادة السعرات 300-500 فوق احتياجك</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-emerald-400/50">•</span>
+                  <span>بروتينك اليومي {Math.round(avgDailyProtein)}g 
+                    {profile && avgDailyProtein < profile.targetProtein * 0.8 ? ' ⚠️ أقل من المطلوب، زد من مصادر البروتين' : ' ✅ ممتاز!'}
+                  </span>
+                </li>
+                {estimatedMuscleGain > 0.5 && (
+                  <li className="flex items-start gap-2">
+                    <span className="text-emerald-400/50">•</span>
+                    <span>💪 تقديري: كسبت {estimatedMuscleGain.toFixed(2)} كجم عضلات حتى الآن! استمر!</span>
+                  </li>
+                )}
+              </>
+            )}
+            {isCut && (
+              <>
+                <li className="flex items-start gap-2">
+                  <span className="text-orange-400/50">•</span>
+                  <span>أنت في مرحلة تنشيف، حافظ على عجز 300-500 سعرة يومياً</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-orange-400/50">•</span>
+                  <span>بروتينك اليومي {Math.round(avgDailyProtein)}g
+                    {profile && avgDailyProtein < profile.targetProtein * 0.9 ? ' ⚠️ زد البروتين للحفاظ على العضلات' : ' ✅ جيد!'}
+                  </span>
+                </li>
+                {estimatedFatChange < -0.5 && (
+                  <li className="flex items-start gap-2">
+                    <span className="text-orange-400/50">•</span>
+                    <span>🔥 فقدت {Math.abs(estimatedFatChange).toFixed(2)} كجم دهون! استمر بنفس الوتيرة</span>
+                  </li>
+                )}
+              </>
+            )}
+            {isMaintain && (
+              <>
+                <li className="flex items-start gap-2">
+                  <span className="text-blue-400/50">•</span>
+                  <span>أنت في مرحلة تثبيت، حافظ على سعراتك قريبة من احتياجك اليومي</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-blue-400/50">•</span>
+                  <span>وزنك المتوقع: {estimatedCurrentWeight.toFixed(1)} كجم 
+                    {Math.abs(estimatedWeightChange) > 0.5 ? ' ⚠️ تغير ملحوظ، راجع سعراتك' : ' ✅ مستقر!'}
+                  </span>
+                </li>
+              </>
+            )}
+            {goalAchievementRate < 60 && totalDays > 0 && (
+              <li className="flex items-start gap-2 text-amber-400/50">
+                <span>⚠️</span>
+                <span>نسبة تحقيق الهدف {Math.round(goalAchievementRate)}%، حاول تلتزم بالهدف اليومي أكثر</span>
+              </li>
+            )}
+            {goalAchievementRate >= 80 && totalDays > 0 && (
+              <li className="flex items-start gap-2 text-emerald-400/50">
+                <span>🌟</span>
+                <span>رائع! أنت تلتزم بهدفك بنسبة {Math.round(goalAchievementRate)}%، استمر!</span>
+              </li>
+            )}
+          </ul>
+        </motion.div>
+      </div>
+    );
+  };
+
+  // ============================================
   // عرض الإحصائيات اليومية
   // ============================================
   const renderDailyView = () => {
@@ -246,30 +611,67 @@ export default function StatsTab({ profile, eatenMeals, eatenExtras }: StatsTabP
       );
     }
 
+    // حساب تقديرات اليوم
+    let todayEstimate = null;
+    if (profile && todayStats) {
+      const surplus = todayStats.totalCalories - profile.targetCalories;
+      const dailyWeightChange = surplus / 7700;
+      const proteinRatio = todayStats.totalProtein / (profile.targetProtein || 1);
+      todayEstimate = {
+        surplus,
+        dailyWeightChange,
+        proteinRatio,
+        metGoal: todayStats.metGoal,
+      };
+    }
+
     return (
       <div className="space-y-4">
         {/* Today's Stats */}
         <div className="glass-card rounded-2xl p-4">
           <h3 className="text-xs text-white/40 font-medium text-right mb-3">📅 اليوم</h3>
           {todayStats ? (
-            <div className="grid grid-cols-4 gap-2">
-              <div className="text-center">
-                <div className="text-lg font-black text-orange-400">{Math.round(todayStats.totalCalories)}</div>
-                <div className="text-[8px] text-white/20">سعرة</div>
+            <>
+              <div className="grid grid-cols-4 gap-2">
+                <div className="text-center">
+                  <div className="text-lg font-black text-orange-400">{Math.round(todayStats.totalCalories)}</div>
+                  <div className="text-[8px] text-white/20">سعرة</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-sm font-bold text-blue-400">{Math.round(todayStats.totalProtein)}g</div>
+                  <div className="text-[8px] text-white/20">بروتين</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-sm font-bold text-amber-400">{Math.round(todayStats.totalCarbs)}g</div>
+                  <div className="text-[8px] text-white/20">كارب</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-sm font-bold text-pink-400">{Math.round(todayStats.totalFat)}g</div>
+                  <div className="text-[8px] text-white/20">دهون</div>
+                </div>
               </div>
-              <div className="text-center">
-                <div className="text-sm font-bold text-blue-400">{Math.round(todayStats.totalProtein)}g</div>
-                <div className="text-[8px] text-white/20">بروتين</div>
-              </div>
-              <div className="text-center">
-                <div className="text-sm font-bold text-amber-400">{Math.round(todayStats.totalCarbs)}g</div>
-                <div className="text-[8px] text-white/20">كارب</div>
-              </div>
-              <div className="text-center">
-                <div className="text-sm font-bold text-pink-400">{Math.round(todayStats.totalFat)}g</div>
-                <div className="text-[8px] text-white/20">دهون</div>
-              </div>
-            </div>
+
+              {/* تقديرات اليوم */}
+              {profile && todayEstimate && (
+                <div className="mt-3 pt-3 border-t border-white/[0.05]">
+                  <div className="flex items-center justify-between text-[9px]">
+                    <span className="text-white/30">تقديرات اليوم:</span>
+                    <div className="flex gap-4">
+                      <span className={todayEstimate.surplus > 0 ? 'text-emerald-400/60' : 'text-orange-400/60'}>
+                        {todayEstimate.surplus > 0 ? '+' : ''}{Math.round(todayEstimate.surplus)} سعرة
+                        <span className="text-white/20 text-[7px] mr-1">(فائض)</span>
+                      </span>
+                      <span className={todayEstimate.metGoal ? 'text-emerald-400/60' : 'text-orange-400/60'}>
+                        {todayEstimate.metGoal ? '✅ حققت الهدف' : '❌ لم تحقق الهدف'}
+                      </span>
+                      <span className="text-white/20">
+                        ⚖️ {todayEstimate.dailyWeightChange > 0 ? '+' : ''}{todayEstimate.dailyWeightChange.toFixed(3)} كجم
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </>
           ) : (
             <p className="text-center text-white/15 text-xs">لم تسجل أي وجبات اليوم</p>
           )}
@@ -353,6 +755,19 @@ export default function StatsTab({ profile, eatenMeals, eatenExtras }: StatsTabP
     const completionRate = Math.round((monthData.daysLogged / daysInMonth) * 100);
     const goalRate = Math.round((monthData.daysMetGoal / monthData.daysLogged) * 100);
 
+    // تقديرات الشهر
+    let monthlyEstimate = null;
+    if (profile && monthData.daysLogged > 0) {
+      const avgSurplus = monthData.avgDailyCalories - profile.targetCalories;
+      const totalSurplus = avgSurplus * monthData.daysLogged;
+      const weightChange = totalSurplus / 7700;
+      monthlyEstimate = {
+        avgSurplus,
+        weightChange,
+        daysLogged: monthData.daysLogged,
+      };
+    }
+
     return (
       <div className="space-y-4">
         {/* Month Header */}
@@ -428,11 +843,39 @@ export default function StatsTab({ profile, eatenMeals, eatenExtras }: StatsTabP
           </motion.div>
         </div>
 
+        {/* Monthly Weight Estimate */}
+        {profile && monthlyEstimate && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="glass-card rounded-2xl p-4 border border-primary-500/20 bg-gradient-to-r from-primary-500/5 to-emerald-500/5"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Weight size={14} className="text-primary-400" />
+                <span className="text-[10px] text-white/40">تقديرات الشهر</span>
+              </div>
+              <div className="flex items-center gap-3 text-[10px]">
+                <span className={monthlyEstimate.avgSurplus > 0 ? 'text-emerald-400/60' : 'text-orange-400/60'}>
+                  {monthlyEstimate.avgSurplus > 0 ? '+' : ''}{Math.round(monthlyEstimate.avgSurplus)} سعرة/يوم
+                </span>
+                <span className="text-white/30">
+                  ⚖️ {monthlyEstimate.weightChange > 0 ? '+' : ''}{monthlyEstimate.weightChange.toFixed(2)} كجم
+                </span>
+              </div>
+            </div>
+            <div className="mt-2 text-[8px] text-white/15">
+              بناءً على {monthlyEstimate.daysLogged} يوم مسجل
+            </div>
+          </motion.div>
+        )}
+
         {/* Macro Averages */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
+          transition={{ delay: 0.25 }}
           className="glass-card rounded-2xl p-4"
         >
           <h3 className="text-xs text-white/40 font-medium text-right mb-3">📊 متوسطات اليوم الواحد</h3>
@@ -514,6 +957,22 @@ export default function StatsTab({ profile, eatenMeals, eatenExtras }: StatsTabP
     const monthsCount = 12;
     const completionRate = Math.round((yearData.monthsLogged / monthsCount) * 100);
 
+    // تقديرات السنة
+    let yearlyEstimate = null;
+    if (profile && yearData.monthsLogged > 0) {
+      const avgMonthlyCalories = yearData.totalCalories / yearData.monthsLogged;
+      const avgDailyCalories = avgMonthlyCalories / 30;
+      const avgSurplus = avgDailyCalories - profile.targetCalories;
+      const totalSurplus = avgSurplus * yearData.totalDaysLogged;
+      const weightChange = totalSurplus / 7700;
+      yearlyEstimate = {
+        avgSurplus,
+        weightChange,
+        monthsLogged: yearData.monthsLogged,
+        totalDays: yearData.totalDaysLogged,
+      };
+    }
+
     return (
       <div className="space-y-4">
         {/* Year Header */}
@@ -579,11 +1038,39 @@ export default function StatsTab({ profile, eatenMeals, eatenExtras }: StatsTabP
           </motion.div>
         </div>
 
+        {/* Yearly Weight Estimate */}
+        {profile && yearlyEstimate && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="glass-card rounded-2xl p-4 border border-primary-500/20 bg-gradient-to-r from-primary-500/5 to-emerald-500/5"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Target size={14} className="text-primary-400" />
+                <span className="text-[10px] text-white/40">تقديرات السنة</span>
+              </div>
+              <div className="flex items-center gap-3 text-[10px]">
+                <span className={yearlyEstimate.avgSurplus > 0 ? 'text-emerald-400/60' : 'text-orange-400/60'}>
+                  {yearlyEstimate.avgSurplus > 0 ? '+' : ''}{Math.round(yearlyEstimate.avgSurplus)} سعرة/يوم
+                </span>
+                <span className="text-white/30">
+                  ⚖️ {yearlyEstimate.weightChange > 0 ? '+' : ''}{yearlyEstimate.weightChange.toFixed(2)} كجم
+                </span>
+              </div>
+            </div>
+            <div className="mt-2 text-[8px] text-white/15">
+              بناءً على {yearlyEstimate.totalDays} يوم مسجل في {yearlyEstimate.monthsLogged} شهر
+            </div>
+          </motion.div>
+        )}
+
         {/* Yearly Totals */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
+          transition={{ delay: 0.25 }}
           className="glass-card rounded-2xl p-4"
         >
           <h3 className="text-xs text-white/40 font-medium text-right mb-3">📊 إجمالي السنة</h3>
@@ -650,11 +1137,14 @@ export default function StatsTab({ profile, eatenMeals, eatenExtras }: StatsTabP
         </motion.div>
       </AnimatePresence>
 
+      {/* ===== قسم تقديرات الوزن ===== */}
+      {renderWeightEstimates()}
+
       {/* Summary Stats */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 0.4 }}
+        transition={{ delay: 0.5 }}
         className="glass-card rounded-2xl p-4 border border-white/[0.03]"
       >
         <div className="flex items-center justify-between text-[9px] text-white/20">
