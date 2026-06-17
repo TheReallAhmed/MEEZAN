@@ -17,8 +17,8 @@ export type ActivityLevel = 'sedentary' | 'light' | 'moderate' | 'active' | 'ver
 export type Goal = 'bulk' | 'maintain' | 'cut';
 
 export interface UserProfile {
-  weight: number; // kg
-  height: number; // cm
+  weight: number;
+  height: number;
   age: number;
   gender: Gender;
   activityLevel: ActivityLevel;
@@ -30,7 +30,7 @@ export interface UserProfile {
 }
 
 export interface DailyLog {
-  date: string; // YYYY-MM-DD
+  date: string;
   entries: FoodEntry[];
   totalNutrition: NutritionValues;
 }
@@ -44,6 +44,8 @@ export interface FoodEntry {
   unit: string;
   nutrition: NutritionValues;
   category: string;
+  eatenAt: string;
+  mealType?: 'وجبة رئيسية' | 'سناك' | 'مشروب' | 'حلويات' | 'فواكه';
 }
 
 export interface SavedMeal {
@@ -52,38 +54,12 @@ export interface SavedMeal {
   entries: FoodEntry[];
   totalNutrition: NutritionValues;
   createdAt: string;
-  mealType?: ExtraMealType;
 }
 
 export type TabType = 'tracker' | 'profile' | 'meals' | 'telegram' | 'stats';
 
-// ========== أنواع الأكلات الإضافية ==========
-export type ExtraMealType = 'وجبة رئيسية' | 'سناك' | 'مشروب' | 'حلويات' | 'فواكه';
-
-export interface DailyExtraFood {
-  id: string;
-  foodName: string;
-  foodNameAr: string;
-  category: string;
-  nutrition: NutritionValues;
-  quantity: number;
-  unit: string;
-  timestamp: string;
-  mealType: ExtraMealType;
-  notes?: string;
-}
-
-// ========== أنواع الوجبات المأكولة اليوم ==========
-export interface EatenMeal {
-  mealId: string;
-  mealName: string;
-  entries: FoodEntry[];
-  totalNutrition: NutritionValues;
-  eatenAt: string;
-  date: string; // YYYY-MM-DD
-}
-
-export interface EatenExtraFood {
+// ========== أنواع الأكلات المأكولة اليوم ==========
+export interface DailyEatenFood {
   id: string;
   foodName: string;
   foodNameAr: string;
@@ -92,14 +68,14 @@ export interface EatenExtraFood {
   quantity: number;
   unit: string;
   eatenAt: string;
-  mealType: ExtraMealType;
+  mealType: 'وجبة رئيسية' | 'سناك' | 'مشروب' | 'حلويات' | 'فواكه';
   notes?: string;
-  source: 'extra' | 'saved_meal';
+  source: 'manual' | 'saved_meal' | 'quick_add';
 }
 
 // ========== أنواع الإحصائيات ==========
 export interface DailyStats {
-  date: string; // YYYY-MM-DD
+  date: string;
   totalCalories: number;
   totalProtein: number;
   totalCarbs: number;
@@ -113,7 +89,7 @@ export interface DailyStats {
 }
 
 export interface MonthlyStats {
-  month: string; // YYYY-MM
+  month: string;
   totalCalories: number;
   totalProtein: number;
   totalCarbs: number;
@@ -132,7 +108,7 @@ export interface MonthlyStats {
 }
 
 export interface YearlyStats {
-  year: string; // YYYY
+  year: string;
   totalCalories: number;
   totalProtein: number;
   totalCarbs: number;

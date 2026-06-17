@@ -7,7 +7,7 @@ import ProfileTab from './components/ProfileTab';
 import MealsTab from './components/MealsTab';
 import TelegramTab from './components/TelegramTab';
 import StatsTab from './components/StatsTab';
-import type { TabType, SavedMeal, FoodEntry, UserProfile, DailyExtraFood, EatenMeal, EatenExtraFood } from './types';
+import type { TabType, SavedMeal, FoodEntry, UserProfile, DailyEatenFood } from './types';
 import { unitLabels } from './data/foodDatabase';
 
 function loadFromLS<T>(key: string, fallback: T): T {
@@ -29,9 +29,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<TabType>('tracker');
   const [entries, setEntries] = useState<FoodEntry[]>([]);
   const [meals, setMeals] = useState<SavedMeal[]>(() => loadFromLS('mizan_meals', []));
-  const [extraFoods, setExtraFoods] = useState<DailyExtraFood[]>(() => loadFromLS('mizan_extra_foods', []));
-  const [eatenMeals, setEatenMeals] = useState<EatenMeal[]>(() => loadFromLS('mizan_eaten_meals', []));
-  const [eatenExtras, setEatenExtras] = useState<EatenExtraFood[]>(() => loadFromLS('mizan_eaten_extras', []));
+  const [eatenFoods, setEatenFoods] = useState<DailyEatenFood[]>(() => loadFromLS('mizan_eaten_foods', []));
   const [profile, setProfile] = useState<UserProfile | null>(() => loadFromLS('mizan_profile', null));
   const [botToken, setBotToken] = useState(() => loadFromLS('mizan_bot_token', ''));
   const [chatId, setChatId] = useState(() => loadFromLS('mizan_chat_id', ''));
@@ -41,9 +39,7 @@ export default function App() {
 
   // Persist
   useEffect(() => { saveToLS('mizan_meals', meals); }, [meals]);
-  useEffect(() => { saveToLS('mizan_extra_foods', extraFoods); }, [extraFoods]);
-  useEffect(() => { saveToLS('mizan_eaten_meals', eatenMeals); }, [eatenMeals]);
-  useEffect(() => { saveToLS('mizan_eaten_extras', eatenExtras); }, [eatenExtras]);
+  useEffect(() => { saveToLS('mizan_eaten_foods', eatenFoods); }, [eatenFoods]);
   useEffect(() => { saveToLS('mizan_profile', profile); }, [profile]);
   useEffect(() => { saveToLS('mizan_bot_token', botToken); }, [botToken]);
   useEffect(() => { saveToLS('mizan_chat_id', chatId); }, [chatId]);
@@ -62,58 +58,56 @@ export default function App() {
     showToast('🗑️ تم حذف الوجبة');
   }
 
-  function handleMarkMealAsEaten(mealId: string) {
-    const meal = meals.find(m => m.id === mealId);
-    if (!meal) return;
+  // دالة لإضافة طعام إلى قائمة اليوم
+  function handleAddFoodToToday(food: DailyEatenFood) {
+    setEatenFoods(prev => [food, ...prev]);
+    showToast(`✅ تم إضافة ${food.foodNameAr} إلى قائمة اليوم!`);
+  }
 
-    const today = new Date().toISOString().split('T')[0];
-    const alreadyEaten = eatenMeals.some(m => m.mealId === mealId && m.date === today);
-    if (alreadyEaten) {
-      showToast('⚠️ هذه الوجبة مأكولة اليوم بالفعل');
-      return;
-    }
+  // دالة لإزالة طعام من قائمة اليوم
+  function handleRemoveFoodFromToday(id: string) {
+    setEatenFoods(prev => prev.filter(f => f.id !== id));
+  }
 
-    const eatenMeal: EatenMeal = {
-      mealId: meal.id,
-      mealName: meal.name,
-      entries: meal.entries,
-      totalNutrition: meal.totalNutrition,
-      eatenAt: new Date().toISOString(),
-      date: today,
+  // دالة لإضافة وجبة محفوظة إلى قائمة اليوم
+  function handleAddSavedMealToToday(meal: SavedMeal) {
+    const today = new Date().toISOString();
+    const newFoods: DailyEatenFood[] = meal.entries.map(entry => ({
+      id: Date.now().toString() + Math.random().toString(36).slice(2),
+      foodName: entry.foodName,
+      foodNameAr: entry.foodNameAr,
+      category: entry.category,
+      nutrition: entry.nutrition,
+      quantity: entry.quantity,
+      unit: entry.unit,
+      eatenAt: today,
+      mealType: 'وجبة رئيسية',
+      notes: `من وجبة ${meal.name}`,
+      source: 'saved_meal',
+    }));
+    setEatenFoods(prev => [...newFoods, ...prev]);
+    showToast(`✅ تم إضافة "${meal.name}" إلى قائمة اليوم!`);
+  }
+
+  // دالة لإضافة وجبة محفوظة كاملة كوجبة واحدة
+  function handleAddMealAsOne(meal: SavedMeal) {
+    const today = new Date().toISOString();
+    const totalNutrition = meal.totalNutrition;
+    const newFood: DailyEatenFood = {
+      id: Date.now().toString() + Math.random().toString(36).slice(2),
+      foodName: meal.name,
+      foodNameAr: meal.name,
+      category: 'prepared',
+      nutrition: totalNutrition,
+      quantity: 1,
+      unit: 'وجبة',
+      eatenAt: today,
+      mealType: 'وجبة رئيسية',
+      notes: `وجبة كاملة: ${meal.name}`,
+      source: 'saved_meal',
     };
-
-    setEatenMeals(prev => [eatenMeal, ...prev]);
-    showToast(`✅ تم تسجيل "${meal.name}" كوجبة مأكولة اليوم!`);
-  }
-
-  function handleUnmarkMealAsEaten(mealId: string) {
-    setEatenMeals(prev => prev.filter(m => m.mealId !== mealId));
-    showToast('🗑️ تم إزالة الوجبة من قائمة اليوم');
-  }
-
-  function handleAddExtraFood(food: DailyExtraFood) {
-    setExtraFoods(prev => [food, ...prev]);
-    
-    const eatenExtra: EatenExtraFood = {
-      id: food.id,
-      foodName: food.foodName,
-      foodNameAr: food.foodNameAr,
-      category: food.category,
-      nutrition: food.nutrition,
-      quantity: food.quantity,
-      unit: food.unit,
-      eatenAt: food.timestamp,
-      mealType: food.mealType,
-      notes: food.notes,
-      source: 'extra',
-    };
-    setEatenExtras(prev => [eatenExtra, ...prev]);
-    showToast('✅ تم إضافة الأكل إلى قائمة اليوم!');
-  }
-
-  function handleRemoveExtraFood(id: string) {
-    setExtraFoods(prev => prev.filter(f => f.id !== id));
-    setEatenExtras(prev => prev.filter(e => e.id !== id));
+    setEatenFoods(prev => [newFood, ...prev]);
+    showToast(`✅ تم إضافة "${meal.name}" كوجبة كاملة!`);
   }
 
   function handleSaveProfile(newProfile: UserProfile) {
@@ -121,36 +115,39 @@ export default function App() {
     showToast('✅ تم حفظ بياناتك وأهدافك!');
   }
 
-  function getTodayEatenTotal() {
+  // حساب إجمالي اليوم من eatenFoods
+  function getTodayTotal() {
     const today = new Date().toISOString().split('T')[0];
-    const todayMeals = eatenMeals.filter(m => m.date === today);
-    const todayExtras = eatenExtras.filter(e => {
-      const date = new Date(e.eatenAt).toISOString().split('T')[0];
+    const todayFoods = eatenFoods.filter(f => {
+      const date = new Date(f.eatenAt).toISOString().split('T')[0];
       return date === today;
     });
 
-    const allEntries = [
-      ...todayMeals.flatMap(m => m.entries),
-      ...todayExtras.map(e => ({
-        id: e.id,
-        foodId: e.id,
-        foodName: e.foodName,
-        foodNameAr: e.foodNameAr,
-        quantity: e.quantity,
-        unit: e.unit,
-        nutrition: e.nutrition,
-        category: e.category,
-      }))
-    ];
+    const entries = todayFoods.map(f => ({
+      id: f.id,
+      foodId: f.id,
+      foodName: f.foodName,
+      foodNameAr: f.foodNameAr,
+      quantity: f.quantity,
+      unit: f.unit,
+      nutrition: f.nutrition,
+      category: f.category,
+      eatenAt: f.eatenAt,
+      mealType: f.mealType,
+    }));
 
-    return sumNutrition(allEntries);
+    return {
+      total: sumNutrition(entries),
+      count: todayFoods.length,
+      foods: todayFoods,
+    };
   }
 
-  function clearTodayEaten() {
+  // مسح قائمة اليوم
+  function clearToday() {
     const today = new Date().toISOString().split('T')[0];
-    setEatenMeals(prev => prev.filter(m => m.date !== today));
-    setEatenExtras(prev => prev.filter(e => {
-      const date = new Date(e.eatenAt).toISOString().split('T')[0];
+    setEatenFoods(prev => prev.filter(f => {
+      const date = new Date(f.eatenAt).toISOString().split('T')[0];
       return date !== today;
     }));
     showToast('🗑️ تم مسح قائمة اليوم');
@@ -298,13 +295,8 @@ export default function App() {
     }
   }
 
-  const todayTotal = getTodayEatenTotal();
+  const todayData = getTodayTotal();
   const today = new Date().toISOString().split('T')[0];
-  const todayMeals = eatenMeals.filter(m => m.date === today);
-  const todayExtras = eatenExtras.filter(e => {
-    const date = new Date(e.eatenAt).toISOString().split('T')[0];
-    return date === today;
-  });
 
   return (
     <div className="min-h-screen text-white relative">
@@ -336,10 +328,9 @@ export default function App() {
         <Header 
           activeTab={activeTab} 
           setActiveTab={setActiveTab} 
-          totalNutrition={total}
+          totalNutrition={todayData.total}
           profile={profile}
-          todayTotal={todayTotal}
-          todayCount={todayMeals.length + todayExtras.length}
+          todayCount={todayData.count}
         />
 
         <main className="max-w-4xl mx-auto px-4 py-6 pb-20">
@@ -353,17 +344,13 @@ export default function App() {
                 transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
               >
                 <TrackerTab 
-                  onSaveMeal={handleSaveMeal} 
-                  entries={entries} 
-                  setEntries={setEntries}
+                  onSaveMeal={handleSaveMeal}
+                  eatenFoods={eatenFoods}
+                  onAddFoodToToday={handleAddFoodToToday}
+                  onRemoveFoodFromToday={handleRemoveFoodFromToday}
+                  onClearToday={clearToday}
                   profile={profile}
-                  extraFoods={extraFoods}
-                  onAddExtraFood={handleAddExtraFood}
-                  onRemoveExtraFood={handleRemoveExtraFood}
-                  eatenMeals={todayMeals}
-                  eatenExtras={todayExtras}
-                  todayTotal={todayTotal}
-                  onClearToday={clearTodayEaten}
+                  todayTotal={todayData.total}
                 />
               </motion.div>
             )}
@@ -393,9 +380,7 @@ export default function App() {
                   onDeleteMeal={handleDeleteMeal}
                   onSendToTelegram={sendToTelegram}
                   telegramConfigured={!!botToken && !!chatId}
-                  eatenMeals={eatenMeals}
-                  onMarkMealAsEaten={handleMarkMealAsEaten}
-                  onUnmarkMealAsEaten={handleUnmarkMealAsEaten}
+                  onAddMealToToday={handleAddSavedMealToToday}
                 />
               </motion.div>
             )}
@@ -428,8 +413,7 @@ export default function App() {
               >
                 <StatsTab 
                   profile={profile}
-                  eatenMeals={eatenMeals}
-                  eatenExtras={eatenExtras}
+                  eatenFoods={eatenFoods}
                 />
               </motion.div>
             )}

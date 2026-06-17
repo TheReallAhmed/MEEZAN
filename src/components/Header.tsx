@@ -7,7 +7,6 @@ interface HeaderProps {
   setActiveTab: (tab: TabType) => void;
   totalNutrition: NutritionValues;
   profile: UserProfile | null;
-  todayTotal?: NutritionValues;
   todayCount?: number;
 }
 
@@ -23,8 +22,8 @@ function AnimatedNumber({ value }: { value: number }) {
   return <span>{Math.round(value)}</span>;
 }
 
-export default function Header({ activeTab, setActiveTab, totalNutrition, profile, todayTotal, todayCount }: HeaderProps) {
-  const displayTotal = todayTotal && todayCount && todayCount > 0 ? todayTotal : totalNutrition;
+export default function Header({ activeTab, setActiveTab, totalNutrition, profile, todayCount }: HeaderProps) {
+  const displayTotal = totalNutrition;
   const hasData = displayTotal.calories > 0 || (todayCount && todayCount > 0);
 
   const getTargets = () => {
@@ -57,9 +56,9 @@ export default function Header({ activeTab, setActiveTab, totalNutrition, profil
   return (
     <header className="sticky top-0 z-50 glass border-b border-white/[0.05]">
       <div className="max-w-4xl mx-auto px-4">
-        {/* ===== الصف العلوي: اللوجو باليمين والتابز بالشمال ===== */}
+        {/* الصف العلوي */}
         <div className="flex items-center justify-between py-2">
-          {/* ===== التابز - الجانب الأيسر (الشمال) ===== */}
+          {/* التابز - الجانب الأيسر */}
           <nav className="flex gap-0.5 bg-white/[0.04] rounded-2xl p-0.5 order-1">
             {tabs.map((tab) => (
               <motion.button
@@ -79,7 +78,7 @@ export default function Header({ activeTab, setActiveTab, totalNutrition, profil
             ))}
           </nav>
 
-          {/* ===== اللوجو والاسم - الجانب الأيمن ===== */}
+          {/* اللوجو والاسم - الجانب الأيمن */}
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -95,7 +94,7 @@ export default function Header({ activeTab, setActiveTab, totalNutrition, profil
           </motion.div>
         </div>
 
-        {/* ===== شريط الإحصائيات ===== */}
+        {/* شريط الإحصائيات */}
         {hasData && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
@@ -105,7 +104,7 @@ export default function Header({ activeTab, setActiveTab, totalNutrition, profil
           >
             <div className="bg-gradient-to-r from-primary-500/5 via-emerald-500/5 to-amber-500/5 rounded-2xl p-2.5 border border-white/[0.04]">
               <div className="flex items-center justify-between gap-2 flex-wrap">
-                {/* ===== الجهة اليمنى: الهدف + السعرات ===== */}
+                {/* الجهة اليمنى: الهدف + السعرات */}
                 <div className="flex items-center gap-3">
                   {profile && (
                     <div className="flex items-center gap-1 text-[9px] text-white/30 bg-white/[0.04] px-2.5 py-0.5 rounded-full border border-white/[0.04]">
@@ -127,7 +126,7 @@ export default function Header({ activeTab, setActiveTab, totalNutrition, profil
                   </div>
                 </div>
 
-                {/* ===== الجهة اليسرى: الماكروز ===== */}
+                {/* الجهة اليسرى: الماكروز */}
                 <div className="flex items-center gap-2 flex-wrap">
                   {/* البروتين */}
                   <div className="flex items-center gap-1">
@@ -232,7 +231,7 @@ export default function Header({ activeTab, setActiveTab, totalNutrition, profil
                 )}
               </div>
 
-              {/* ===== التفاصيل الإضافية ===== */}
+              {/* التفاصيل الإضافية */}
               <div className="flex items-center justify-end gap-3 mt-1 text-[7px] text-white/15">
                 <span>🥬 ألياف: {Math.round(displayTotal.fiber)}g</span>
                 <span>🍬 سكر: {Math.round(displayTotal.sugar)}g</span>

@@ -1,17 +1,15 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Trash2, ChevronDown, Clock, Send, UtensilsCrossed, Calculator, Zap, CheckSquare, Square } from 'lucide-react';
+import { Trash2, ChevronDown, Clock, Send, UtensilsCrossed, Calculator, Zap, PlusCircle } from 'lucide-react';
 import { unitLabels } from '../data/foodDatabase';
-import type { SavedMeal, NutritionValues, EatenMeal } from '../types';
+import type { SavedMeal, NutritionValues } from '../types';
 
 interface MealsTabProps {
   meals: SavedMeal[];
   onDeleteMeal: (id: string) => void;
   onSendToTelegram: (meal: SavedMeal) => void;
   telegramConfigured: boolean;
-  eatenMeals: EatenMeal[];
-  onMarkMealAsEaten: (mealId: string) => void;
-  onUnmarkMealAsEaten: (mealId: string) => void;
+  onAddMealToToday: (meal: SavedMeal) => void;
 }
 
 const emptyNutrition: NutritionValues = {
@@ -51,17 +49,9 @@ export default function MealsTab({
   onDeleteMeal, 
   onSendToTelegram, 
   telegramConfigured,
-  eatenMeals,
-  onMarkMealAsEaten,
-  onUnmarkMealAsEaten
+  onAddMealToToday
 }: MealsTabProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
-
-  const today = new Date().toISOString().split('T')[0];
-  
-  function isMealEatenToday(mealId: string): boolean {
-    return eatenMeals.some(m => m.mealId === mealId && m.date === today);
-  }
 
   const totalAllMeals = useMemo(() => {
     return meals.reduce((acc, meal) => ({
@@ -133,7 +123,6 @@ export default function MealsTab({
         </motion.div>
         <h3 className="text-lg font-bold text-white/20 mb-2">لا توجد وجبات محفوظة</h3>
         <p className="text-white/10 text-sm">أضف أطعمة في الحاسبة واحفظها كوجبة</p>
-        <p className="text-white/5 text-xs mt-2">🇪🇬 جرب تحفظ كشري أو فول وطعمية</p>
       </motion.div>
     );
   }
@@ -240,6 +229,7 @@ export default function MealsTab({
         </div>
       </motion.div>
 
+      {/* Header */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -251,6 +241,7 @@ export default function MealsTab({
         </h2>
       </motion.div>
 
+      {/* Meals list */}
       <AnimatePresence>
         {meals.map((meal, i) => {
           const isExpanded = expandedId === meal.id;
@@ -258,7 +249,6 @@ export default function MealsTab({
           const egyptianCount = countEgyptianItems(meal);
           const mealEmoji = getMealEmoji(meal);
           const tip = getMealTip(meal);
-          const eatenToday = isMealEatenToday(meal.id);
 
           return (
             <motion.div
@@ -269,7 +259,7 @@ export default function MealsTab({
               transition={{ delay: i * 0.05 }}
               className={`glass-card rounded-3xl overflow-hidden transition-all duration-300 ${
                 isEgyptian ? 'border-amber-500/20 border' : ''
-              } ${eatenToday ? 'border-emerald-500/30 bg-emerald-500/5' : ''}`}
+              }`}
             >
               <button
                 onClick={() => setExpandedId(isExpanded ? null : meal.id)}
@@ -291,9 +281,6 @@ export default function MealsTab({
                       {isEgyptian && (
                         <span className="text-amber-400/50 text-xs mr-1.5">🇪🇬</span>
                       )}
-                      {eatenToday && (
-                        <span className="text-emerald-400/50 text-xs mr-1.5">✅</span>
-                      )}
                     </h3>
                   </div>
                   
@@ -306,12 +293,6 @@ export default function MealsTab({
                       <>
                         <span>•</span>
                         <span className="text-amber-400/30">{egyptianCount} أكلات مصرية</span>
-                      </>
-                    )}
-                    {eatenToday && (
-                      <>
-                        <span>•</span>
-                        <span className="text-emerald-400/30">مأكولة اليوم</span>
                       </>
                     )}
                   </div>
@@ -379,33 +360,15 @@ export default function MealsTab({
                       })}
 
                       <div className="flex gap-2 mt-4 flex-wrap">
+                        {/* زر إضافة الوجبة إلى اليوم */}
                         <motion.button
                           whileHover={{ scale: 1.03 }}
                           whileTap={{ scale: 0.97 }}
-                          onClick={() => {
-                            if (eatenToday) {
-                              onUnmarkMealAsEaten(meal.id);
-                            } else {
-                              onMarkMealAsEaten(meal.id);
-                            }
-                          }}
-                          className={`flex-1 flex items-center justify-center gap-1.5 py-3 rounded-xl transition-all text-xs font-medium border ${
-                            eatenToday
-                              ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20'
-                              : 'bg-white/[0.03] text-white/40 border-white/[0.05] hover:bg-white/[0.06] hover:text-white/60'
-                          }`}
+                          onClick={() => onAddMealToToday(meal)}
+                          className="flex-1 flex items-center justify-center gap-1.5 py-3 rounded-xl bg-gradient-to-r from-primary-500/10 to-emerald-500/5 text-primary-400/70 hover:text-primary-400 transition-all text-xs font-medium border border-primary-500/10 hover:border-primary-500/30"
                         >
-                          {eatenToday ? (
-                            <>
-                              <CheckSquare size={14} />
-                              ✓ مأكولة اليوم
-                            </>
-                          ) : (
-                            <>
-                              <Square size={14} />
-                              حدد كأكلت اليوم
-                            </>
-                          )}
+                          <PlusCircle size={14} />
+                          أضف لقائمة اليوم
                         </motion.button>
 
                         <motion.button
