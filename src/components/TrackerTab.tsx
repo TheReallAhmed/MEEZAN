@@ -4,7 +4,7 @@ import { Save, RotateCcw, Sparkles, ListChecks, Plus, X, StickyNote } from 'luci
 import FoodSearch from './FoodSearch';
 import FoodList from './FoodList';
 import NutritionSummary from './NutritionSummary';
-import type { FoodEntry, NutritionValues, SavedMeal, UserProfile, DailyExtraFood, ExtraMealType } from '../types';
+import type { FoodEntry, NutritionValues, SavedMeal, UserProfile, DailyExtraFood, ExtraMealType, EatenMeal, EatenExtraFood } from '../types';
 import { unitLabels } from '../data/foodDatabase';
 
 interface TrackerTabProps {
@@ -15,6 +15,10 @@ interface TrackerTabProps {
   extraFoods: DailyExtraFood[];
   onAddExtraFood: (food: DailyExtraFood) => void;
   onRemoveExtraFood: (id: string) => void;
+  eatenMeals: EatenMeal[];
+  eatenExtras: EatenExtraFood[];
+  todayTotal: NutritionValues;
+  onClearToday: () => void;
 }
 
 const emptyNutrition: NutritionValues = {
@@ -22,7 +26,6 @@ const emptyNutrition: NutritionValues = {
   sugar: 0, sodium: 0, iron: 0, calcium: 0, vitaminC: 0, grams: 0,
 };
 
-// الأكلات المصرية للتعرف عليها 🇪🇬
 const EGYPTIAN_FOODS = [
   'عيش بلدي', 'طعمية', 'فلافل', 'فول مدمس', 'عدس مطبوخ', 'كشري', 'ملوخية',
   'بامية', 'محشي', 'ورق عنب', 'دوالي', 'مسقعة', 'بابا غنوج', 'حمص',
@@ -58,7 +61,11 @@ export default function TrackerTab({
   profile,
   extraFoods,
   onAddExtraFood,
-  onRemoveExtraFood
+  onRemoveExtraFood,
+  eatenMeals,
+  eatenExtras,
+  todayTotal,
+  onClearToday
 }: TrackerTabProps) {
   const [mealName, setMealName] = useState('');
   const [showSaveDialog, setShowSaveDialog] = useState(false);
@@ -69,8 +76,6 @@ export default function TrackerTab({
   const [extraNotes, setExtraNotes] = useState('');
 
   const total = sumNutrition(entries);
-
-  // حساب إجمالي الأكلات الإضافية
   const extraTotal = sumNutrition(extraFoods.map(f => ({
     ...f,
     foodId: f.id,
@@ -83,7 +88,6 @@ export default function TrackerTab({
     id: f.id
   } as FoodEntry)));
 
-  // التحقق إذا كانت الوجبة مصرية
   function isEgyptianMeal(entries: FoodEntry[]): boolean {
     return entries.some(entry => 
       EGYPTIAN_FOODS.some(food => 
@@ -92,7 +96,6 @@ export default function TrackerTab({
     );
   }
 
-  // اقتراح اسم وجبة مصري
   function suggestEgyptianMealName(entries: FoodEntry[]): string {
     const egyptianItems = entries.filter(entry =>
       EGYPTIAN_FOODS.some(food => 
@@ -151,7 +154,6 @@ export default function TrackerTab({
     setShowSaveDialog(true);
   }
 
-  // دالة لإضافة أكل اليوم
   function handleAddExtraFoodFromSearch(entry: FoodEntry) {
     const extraFood: DailyExtraFood = {
       id: Date.now().toString() + Math.random().toString(36).slice(2),
@@ -265,7 +267,6 @@ export default function TrackerTab({
           </h2>
         </div>
 
-        {/* Extra Foods List */}
         {extraFoods.length === 0 ? (
           <div className="text-center py-6">
             <p className="text-white/15 text-sm">📭 لم تضف أي أكلات إضافية اليوم</p>
@@ -343,7 +344,6 @@ export default function TrackerTab({
               })}
             </AnimatePresence>
 
-            {/* Extra Foods Total */}
             <div className="mt-3 pt-3 border-t border-white/[0.05]">
               <div className="flex items-center justify-between text-xs">
                 <span className="text-white/20">📊 إجمالي الإضافات</span>
@@ -358,6 +358,125 @@ export default function TrackerTab({
           </div>
         )}
       </motion.div>
+
+      {/* ===== قسم "أكلت اليوم" الجديد ===== */}
+      {(eatenMeals.length > 0 || eatenExtras.length > 0) && (
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2, type: 'spring', bounce: 0.2 }}
+          className="glass-card rounded-3xl p-5 sm:p-6 border border-emerald-500/10"
+        >
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex gap-2">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={onClearToday}
+                className="text-white/20 hover:text-red-400 text-xs flex items-center gap-1 px-3 py-1.5 rounded-xl hover:bg-red-500/10 transition-all border border-transparent hover:border-red-500/20"
+              >
+                <RotateCcw size={13} />
+                مسح قائمة اليوم
+              </motion.button>
+            </div>
+            <h2 className="text-base font-bold text-white/80 flex items-center gap-2">
+              <span className="text-lg">✅</span>
+              أكلت اليوم
+              <span className="text-xs text-white/20 bg-white/5 px-2 py-0.5 rounded-full font-normal">
+                {eatenMeals.length + eatenExtras.length}
+              </span>
+            </h2>
+          </div>
+
+          <div className="space-y-2">
+            {/* الوجبات المأكولة */}
+            {eatenMeals.map((meal, idx) => (
+              <motion.div
+                key={`meal-${meal.mealId}`}
+                initial={{ opacity: 0, x: 60 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: idx * 0.03 }}
+                className="bg-emerald-500/5 border border-emerald-500/15 rounded-2xl p-3.5 flex items-center gap-3"
+              >
+                <div className="flex-1 flex flex-wrap gap-1.5 items-center">
+                  <span className="text-[10px] text-emerald-400/70 bg-emerald-400/10 px-2 py-0.5 rounded-full font-medium">
+                    🍽️ وجبة
+                  </span>
+                  <span className="text-[10px] text-orange-400/70 bg-orange-400/10 px-2 py-0.5 rounded-full font-medium">
+                    {Math.round(meal.totalNutrition.calories)} cal
+                  </span>
+                </div>
+                <div className="text-right">
+                  <div className="text-white/80 font-semibold text-sm">
+                    {meal.mealName}
+                  </div>
+                  <div className="text-white/20 text-xs mt-0.5">
+                    {new Date(meal.eatenAt).toLocaleTimeString('ar', { hour: '2-digit', minute: '2-digit' })}
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+
+            {/* الأكلات الإضافية المأكولة */}
+            {eatenExtras.map((food, idx) => {
+              const mealTypeEmojis: Record<ExtraMealType, string> = {
+                'وجبة رئيسية': '🍽️',
+                'سناك': '🍿',
+                'مشروب': '☕',
+                'حلويات': '🍰',
+                'فواكه': '🍎',
+              };
+              const mealTypeColors: Record<ExtraMealType, string> = {
+                'وجبة رئيسية': 'border-blue-500/30 bg-blue-500/10 text-blue-400',
+                'سناك': 'border-amber-500/30 bg-amber-500/10 text-amber-400',
+                'مشروب': 'border-cyan-500/30 bg-cyan-500/10 text-cyan-400',
+                'حلويات': 'border-pink-500/30 bg-pink-500/10 text-pink-400',
+                'فواكه': 'border-green-500/30 bg-green-500/10 text-green-400',
+              };
+              return (
+                <motion.div
+                  key={`extra-${food.id}`}
+                  initial={{ opacity: 0, x: 60 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: (eatenMeals.length + idx) * 0.03 }}
+                  className="bg-white/[0.02] border border-white/[0.04] rounded-2xl p-3.5 flex items-center gap-3"
+                >
+                  <div className="flex-1 flex flex-wrap gap-1.5 items-center">
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium border ${mealTypeColors[food.mealType]}`}>
+                      {mealTypeEmojis[food.mealType]} {food.mealType}
+                    </span>
+                    <span className="text-[10px] text-orange-400/70 bg-orange-400/10 px-2 py-0.5 rounded-full font-medium">
+                      {food.nutrition.calories} cal
+                    </span>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-white/80 font-semibold text-sm">
+                      {food.foodNameAr}
+                    </div>
+                    <div className="text-white/20 text-xs mt-0.5">
+                      {food.quantity} {unitLabels[food.unit] || food.unit}
+                      {food.notes && <span className="mr-2">📝 {food.notes}</span>}
+                    </div>
+                  </div>
+                </motion.div>
+              );
+            })}
+
+            {/* إجمالي المأكولات اليوم */}
+            <div className="mt-3 pt-3 border-t border-white/[0.05]">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-white/20">📊 إجمالي ما أكلت اليوم</span>
+                <div className="flex gap-3 flex-wrap justify-end">
+                  <span className="text-orange-400/80 font-bold">{Math.round(todayTotal.calories)} سعرة</span>
+                  <span className="text-blue-400/60">💪 {todayTotal.protein}g</span>
+                  <span className="text-amber-400/60">🌾 {todayTotal.carbs}g</span>
+                  <span className="text-pink-400/60">🧈 {todayTotal.fat}g</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      )}
 
       {/* Save Meal Dialog */}
       <AnimatePresence>
@@ -448,7 +567,6 @@ export default function TrackerTab({
                 <p className="text-xs text-white/25 mt-1">اختر الطعام وحدد التصنيف المناسب</p>
               </div>
 
-              {/* Food Search */}
               <div className="space-y-3">
                 <label className="text-xs text-white/30 font-medium block">🔍 ابحث عن الطعام</label>
                 <FoodSearch onAddEntry={(entry) => {
@@ -469,7 +587,6 @@ export default function TrackerTab({
                 )}
               </div>
 
-              {/* Meal Type Selection */}
               <div className="space-y-2">
                 <label className="text-xs text-white/30 font-medium block">📋 التصنيف</label>
                 <div className="grid grid-cols-5 gap-2">
@@ -503,7 +620,6 @@ export default function TrackerTab({
                 </div>
               </div>
 
-              {/* Notes */}
               <div className="space-y-2">
                 <label className="text-xs text-white/30 font-medium block flex items-center gap-1">
                   <StickyNote size={12} /> ملاحظات (اختياري)
@@ -518,7 +634,6 @@ export default function TrackerTab({
                 />
               </div>
 
-              {/* Actions */}
               <div className="flex gap-3 pt-2">
                 <button
                   onClick={() => setShowExtraFoodModal(false)}
@@ -565,6 +680,8 @@ export default function TrackerTab({
         profile={profile}
         extraTotal={extraTotal}
         extraCount={extraFoods.length}
+        todayTotal={todayTotal}
+        todayCount={eatenMeals.length + eatenExtras.length}
       />
     </div>
   );

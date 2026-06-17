@@ -6,7 +6,7 @@ import { sumNutrition } from './components/TrackerTab';
 import ProfileTab from './components/ProfileTab';
 import MealsTab from './components/MealsTab';
 import TelegramTab from './components/TelegramTab';
-import type { TabType, SavedMeal, FoodEntry, UserProfile, DailyExtraFood } from './types';
+import type { TabType, SavedMeal, FoodEntry, UserProfile, DailyExtraFood, EatenMeal, EatenExtraFood } from './types';
 import { unitLabels } from './data/foodDatabase';
 
 function loadFromLS<T>(key: string, fallback: T): T {
@@ -29,6 +29,8 @@ export default function App() {
   const [entries, setEntries] = useState<FoodEntry[]>([]);
   const [meals, setMeals] = useState<SavedMeal[]>(() => loadFromLS('mizan_meals', []));
   const [extraFoods, setExtraFoods] = useState<DailyExtraFood[]>(() => loadFromLS('mizan_extra_foods', []));
+  const [eatenMeals, setEatenMeals] = useState<EatenMeal[]>(() => loadFromLS('mizan_eaten_meals', []));
+  const [eatenExtras, setEatenExtras] = useState<EatenExtraFood[]>(() => loadFromLS('mizan_eaten_extras', []));
   const [profile, setProfile] = useState<UserProfile | null>(() => loadFromLS('mizan_profile', null));
   const [botToken, setBotToken] = useState(() => loadFromLS('mizan_bot_token', ''));
   const [chatId, setChatId] = useState(() => loadFromLS('mizan_chat_id', ''));
@@ -39,6 +41,8 @@ export default function App() {
   // Persist
   useEffect(() => { saveToLS('mizan_meals', meals); }, [meals]);
   useEffect(() => { saveToLS('mizan_extra_foods', extraFoods); }, [extraFoods]);
+  useEffect(() => { saveToLS('mizan_eaten_meals', eatenMeals); }, [eatenMeals]);
+  useEffect(() => { saveToLS('mizan_eaten_extras', eatenExtras); }, [eatenExtras]);
   useEffect(() => { saveToLS('mizan_profile', profile); }, [profile]);
   useEffect(() => { saveToLS('mizan_bot_token', botToken); }, [botToken]);
   useEffect(() => { saveToLS('mizan_chat_id', chatId); }, [chatId]);
@@ -57,13 +61,58 @@ export default function App() {
     showToast('🗑️ تم حذف الوجبة');
   }
 
+  function handleMarkMealAsEaten(mealId: string) {
+    const meal = meals.find(m => m.id === mealId);
+    if (!meal) return;
+
+    const today = new Date().toISOString().split('T')[0];
+    const alreadyEaten = eatenMeals.some(m => m.mealId === mealId && m.date === today);
+    if (alreadyEaten) {
+      showToast('⚠️ هذه الوجبة مأكولة اليوم بالفعل');
+      return;
+    }
+
+    const eatenMeal: EatenMeal = {
+      mealId: meal.id,
+      mealName: meal.name,
+      entries: meal.entries,
+      totalNutrition: meal.totalNutrition,
+      eatenAt: new Date().toISOString(),
+      date: today,
+    };
+
+    setEatenMeals(prev => [eatenMeal, ...prev]);
+    showToast(`✅ تم تسجيل "${meal.name}" كوجبة مأكولة اليوم!`);
+  }
+
+  function handleUnmarkMealAsEaten(mealId: string) {
+    setEatenMeals(prev => prev.filter(m => m.mealId !== mealId));
+    showToast('🗑️ تم إزالة الوجبة من قائمة اليوم');
+  }
+
   function handleAddExtraFood(food: DailyExtraFood) {
     setExtraFoods(prev => [food, ...prev]);
+    
+    const eatenExtra: EatenExtraFood = {
+      id: food.id,
+      foodName: food.foodName,
+      foodNameAr: food.foodNameAr,
+      category: food.category,
+      nutrition: food.nutrition,
+      quantity: food.quantity,
+      unit: food.unit,
+      eatenAt: food.timestamp,
+      mealType: food.mealType,
+      notes: food.notes,
+      source: 'extra',
+    };
+    setEatenExtras(prev => [eatenExtra, ...prev]);
     showToast('✅ تم إضافة الأكل إلى قائمة اليوم!');
   }
 
   function handleRemoveExtraFood(id: string) {
     setExtraFoods(prev => prev.filter(f => f.id !== id));
+    setEatenExtras(prev => prev.filter(e => e.id !== id));
   }
 
   function handleSaveProfile(newProfile: UserProfile) {
@@ -71,19 +120,52 @@ export default function App() {
     showToast('✅ تم حفظ بياناتك وأهدافك!');
   }
 
+  function getTodayEatenTotal() {
+    const today = new Date().toISOString().split('T')[0];
+    const todayMeals = eatenMeals.filter(m => m.date === today);
+    const todayExtras = eatenExtras.filter(e => {
+      const date = new Date(e.eatenAt).toISOString().split('T')[0];
+      return date === today;
+    });
+
+    const allEntries = [
+      ...todayMeals.flatMap(m => m.entries),
+      ...todayExtras.map(e => ({
+        id: e.id,
+        foodId: e.id,
+        foodName: e.foodName,
+        foodNameAr: e.foodNameAr,
+        quantity: e.quantity,
+        unit: e.unit,
+        nutrition: e.nutrition,
+        category: e.category,
+      }))
+    ];
+
+    return sumNutrition(allEntries);
+  }
+
+  function clearTodayEaten() {
+    const today = new Date().toISOString().split('T')[0];
+    setEatenMeals(prev => prev.filter(m => m.date !== today));
+    setEatenExtras(prev => prev.filter(e => {
+      const date = new Date(e.eatenAt).toISOString().split('T')[0];
+      return date !== today;
+    }));
+    showToast('🗑️ تم مسح قائمة اليوم');
+  }
+
   function formatMealMessage(meal: SavedMeal): string {
     const t = meal.totalNutrition;
     const date = new Date(meal.createdAt).toLocaleDateString('ar', { year: 'numeric', month: 'long', day: 'numeric' });
     const time = new Date(meal.createdAt).toLocaleTimeString('ar', { hour: '2-digit', minute: '2-digit' });
 
-    // Calculate percentages if profile exists
     const hasProfile = !!profile;
     const calPercent = hasProfile ? Math.round((t.calories / profile.targetCalories) * 100) : 0;
     const proteinPercent = hasProfile ? Math.round((t.protein / profile.targetProtein) * 100) : 0;
     const carbsPercent = hasProfile ? Math.round((t.carbs / profile.targetCarbs) * 100) : 0;
     const fatPercent = hasProfile ? Math.round((t.fat / profile.targetFat) * 100) : 0;
 
-    // Progress bars using Unicode
     const makeBar = (percent: number) => {
       const filled = Math.round(percent / 10);
       const empty = 10 - filled;
@@ -215,12 +297,18 @@ export default function App() {
     }
   }
 
+  const todayTotal = getTodayEatenTotal();
+  const today = new Date().toISOString().split('T')[0];
+  const todayMeals = eatenMeals.filter(m => m.date === today);
+  const todayExtras = eatenExtras.filter(e => {
+    const date = new Date(e.eatenAt).toISOString().split('T')[0];
+    return date === today;
+  });
+
   return (
     <div className="min-h-screen text-white relative">
-      {/* Animated background */}
       <div className="bg-mesh" />
 
-      {/* Floating particles */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
         {[...Array(8)].map((_, i) => (
           <div
@@ -269,6 +357,10 @@ export default function App() {
                   extraFoods={extraFoods}
                   onAddExtraFood={handleAddExtraFood}
                   onRemoveExtraFood={handleRemoveExtraFood}
+                  eatenMeals={todayMeals}
+                  eatenExtras={todayExtras}
+                  todayTotal={todayTotal}
+                  onClearToday={clearTodayEaten}
                 />
               </motion.div>
             )}
@@ -298,6 +390,9 @@ export default function App() {
                   onDeleteMeal={handleDeleteMeal}
                   onSendToTelegram={sendToTelegram}
                   telegramConfigured={!!botToken && !!chatId}
+                  eatenMeals={eatenMeals}
+                  onMarkMealAsEaten={handleMarkMealAsEaten}
+                  onUnmarkMealAsEaten={handleUnmarkMealAsEaten}
                 />
               </motion.div>
             )}
@@ -322,7 +417,6 @@ export default function App() {
           </AnimatePresence>
         </main>
 
-        {/* Toast */}
         <AnimatePresence>
           {toast && (
             <motion.div
@@ -338,7 +432,6 @@ export default function App() {
           )}
         </AnimatePresence>
 
-        {/* Footer */}
         <footer className="fixed bottom-0 left-0 right-0 glass py-2.5 text-center z-20">
           <motion.p 
             initial={{ opacity: 0 }}

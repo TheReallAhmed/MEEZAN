@@ -9,6 +9,8 @@ interface NutritionSummaryProps {
   profile: UserProfile | null;
   extraTotal?: NutritionValues;
   extraCount?: number;
+  todayTotal?: NutritionValues;
+  todayCount?: number;
 }
 
 interface NutrientInfo {
@@ -44,28 +46,49 @@ function AnimatedNumber({ value }: { value: number }) {
   return <>{Math.round(display * 10) / 10}</>;
 }
 
-export default function NutritionSummary({ total, entryCount, profile, extraTotal, extraCount }: NutritionSummaryProps) {
-  if (entryCount === 0 && (!extraCount || extraCount === 0)) return null;
+export default function NutritionSummary({ total, entryCount, profile, extraTotal, extraCount, todayTotal, todayCount }: NutritionSummaryProps) {
+  if (entryCount === 0 && (!extraCount || extraCount === 0) && (!todayCount || todayCount === 0)) return null;
 
   const hasProfile = !!profile;
   const hasExtras = extraTotal && extraCount && extraCount > 0;
+  const hasToday = todayTotal && todayCount && todayCount > 0;
 
-  // دمج الإجمالي مع الإضافات
-  const combinedTotal = hasExtras ? {
-    calories: total.calories + extraTotal.calories,
-    protein: total.protein + extraTotal.protein,
-    carbs: total.carbs + extraTotal.carbs,
-    fat: total.fat + extraTotal.fat,
-    fiber: total.fiber + extraTotal.fiber,
-    sugar: total.sugar + extraTotal.sugar,
-    sodium: total.sodium + extraTotal.sodium,
-    iron: total.iron + extraTotal.iron,
-    calcium: total.calcium + extraTotal.calcium,
-    vitaminC: total.vitaminC + extraTotal.vitaminC,
-    grams: total.grams + extraTotal.grams,
-  } : total;
+  // دمج الإجمالي مع الإضافات والوجبات المأكولة
+  let combinedTotal = { ...total };
+  
+  if (hasExtras) {
+    combinedTotal = {
+      calories: combinedTotal.calories + extraTotal.calories,
+      protein: combinedTotal.protein + extraTotal.protein,
+      carbs: combinedTotal.carbs + extraTotal.carbs,
+      fat: combinedTotal.fat + extraTotal.fat,
+      fiber: combinedTotal.fiber + extraTotal.fiber,
+      sugar: combinedTotal.sugar + extraTotal.sugar,
+      sodium: combinedTotal.sodium + extraTotal.sodium,
+      iron: combinedTotal.iron + extraTotal.iron,
+      calcium: combinedTotal.calcium + extraTotal.calcium,
+      vitaminC: combinedTotal.vitaminC + extraTotal.vitaminC,
+      grams: combinedTotal.grams + extraTotal.grams,
+    };
+  }
 
-  // تعريف الأهداف
+  // إضافة الوجبات المأكولة للتوتال (لأنها فعلاً أكلت)
+  if (hasToday) {
+    combinedTotal = {
+      calories: combinedTotal.calories + todayTotal.calories,
+      protein: combinedTotal.protein + todayTotal.protein,
+      carbs: combinedTotal.carbs + todayTotal.carbs,
+      fat: combinedTotal.fat + todayTotal.fat,
+      fiber: combinedTotal.fiber + todayTotal.fiber,
+      sugar: combinedTotal.sugar + todayTotal.sugar,
+      sodium: combinedTotal.sodium + todayTotal.sodium,
+      iron: combinedTotal.iron + todayTotal.iron,
+      calcium: combinedTotal.calcium + todayTotal.calcium,
+      vitaminC: combinedTotal.vitaminC + todayTotal.vitaminC,
+      grams: combinedTotal.grams + todayTotal.grams,
+    };
+  }
+
   const getTargets = () => {
     if (profile) {
       return {
@@ -161,6 +184,18 @@ export default function NutritionSummary({ total, entryCount, profile, extraTota
         </motion.div>
       )}
 
+      {/* Today eaten summary */}
+      {hasToday && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="text-center text-xs text-emerald-400/60 bg-emerald-500/10 rounded-xl py-2 px-4 border border-emerald-500/15"
+        >
+          ✅ أكلت اليوم: <span className="font-bold">{Math.round(todayTotal.calories)}</span> سعرة 
+          ({todayCount} عناصر) — 💪 {todayTotal.protein}g | 🌾 {todayTotal.carbs}g | 🧈 {todayTotal.fat}g
+        </motion.div>
+      )}
+
       {/* Target header if profile exists */}
       {hasProfile && (
         <motion.div
@@ -209,7 +244,6 @@ export default function NutritionSummary({ total, entryCount, profile, extraTota
                 </div>
                 <div className="text-[11px] text-white/30 mt-1 font-medium">{n.label}</div>
 
-                {/* Progress ring */}
                 <div className="mt-3 relative">
                   <div className="nutrient-bar h-1.5">
                     <motion.div

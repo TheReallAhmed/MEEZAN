@@ -65,10 +65,9 @@ export default function TelegramTab({ botToken, chatId, onSetBotToken, onSetChat
           className="inline-flex items-center justify-center w-16 h-16 rounded-3xl bg-gradient-to-br from-blue-500/20 to-cyan-500/20 mb-3"
           style={{ boxShadow: '0 0 40px rgba(14, 165, 233, 0.2)' }}
         >
-          <span className="text-3xl">🇪🇬</span>
         </motion.div>
         <h2 className="text-xl font-bold text-white">ربط تيليغرام</h2>
-        <p className="text-white/30 text-sm mt-1">أرسل وجباتك المصرية مباشرة لتيليغرام</p>
+        <p className="text-white/30 text-sm mt-1">أرسل وجباتك مباشرة لتيليغرام</p>
       </motion.div>
 
       {/* Setup */}
@@ -113,7 +112,7 @@ export default function TelegramTab({ botToken, chatId, onSetBotToken, onSetChat
                       @userinfobot <ExternalLink size={10} />
                     </a>
                   </li>
-                  <li className="text-amber-400/30">🍞 استمتع بإرسال وجباتك المصرية!</li>
+                  <li className="text-amber-400/30">🍞 استمتع بإرسال وجباتك !</li>
                 </ol>
               </div>
             </div>
@@ -216,7 +215,7 @@ export default function TelegramTab({ botToken, chatId, onSetBotToken, onSetChat
           </motion.div>
           <span className={`text-sm font-medium ${botToken && chatId ? 'text-emerald-400' : 'text-white/20'}`}>
             {botToken && chatId
-              ? '✅ متصل — يمكنك إرسال الوجبات المصرية من "وجباتي" 🇪🇬'
+              ? '✅ متصل — يمكنك إرسال الوجبات  من "وجباتي" 🇪🇬'
               : '⚠️ غير متصل'}
           </span>
         </div>
@@ -273,9 +272,9 @@ ${egyptianMealPreview.items.map(item =>
    ▓▓▓▓░░░░░░ 40%
 
 ╔══════════════════════════╗
-║  ⚖️ مُرسل من تطبيق مِيزان  ║
-║  🇪🇬 غذاء صحي على الطريقة  ║
-║  المصرية 🍞🫘🥗           ║
+║ ⚖️ مُرسل من تطبيق مِيزان ║
+║   غذاء صحي على الطريقة ║
+║   🍞🫘🥗               ║
 ╚══════════════════════════╝`}
           </pre>
         </div>

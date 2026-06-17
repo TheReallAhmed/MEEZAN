@@ -113,7 +113,6 @@ export default function Header({ activeTab, setActiveTab, totalNutrition, profil
               <div className="text-right">
                 <div className="flex items-center gap-1.5 justify-end">
                   <h1 className="text-xl font-black gradient-text tracking-tight">مِيزان</h1>
-                  <span className="text-sm">🇪🇬</span>
                 </div>
                 <p className="text-[9px] text-white/20 -mt-0.5 font-medium">حاسبة التغذية الذكية</p>
               </div>

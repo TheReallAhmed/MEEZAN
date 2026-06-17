@@ -1,14 +1,17 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Trash2, ChevronDown, Clock, Send, UtensilsCrossed, Calculator, Zap, Star, Coffee, ChefHat } from 'lucide-react';
+import { Trash2, ChevronDown, Clock, Send, UtensilsCrossed, Calculator, Zap, CheckSquare, Square } from 'lucide-react';
 import { unitLabels } from '../data/foodDatabase';
-import type { SavedMeal, NutritionValues } from '../types';
+import type { SavedMeal, NutritionValues, EatenMeal } from '../types';
 
 interface MealsTabProps {
   meals: SavedMeal[];
   onDeleteMeal: (id: string) => void;
   onSendToTelegram: (meal: SavedMeal) => void;
   telegramConfigured: boolean;
+  eatenMeals: EatenMeal[];
+  onMarkMealAsEaten: (mealId: string) => void;
+  onUnmarkMealAsEaten: (mealId: string) => void;
 }
 
 const emptyNutrition: NutritionValues = {
@@ -16,14 +19,12 @@ const emptyNutrition: NutritionValues = {
   sugar: 0, sodium: 0, iron: 0, calcium: 0, vitaminC: 0, grams: 0,
 };
 
-// الأكلات المصرية الشائعة للتعرف عليها
 const egyptianFoods = [
   'عيش بلدي', 'طعمية', 'فلافل', 'فول مدمس', 'عدس', 'كشري', 'ملوخية',
   'بامية', 'محشي', 'ورق عنب', 'دوالي', 'مسقعة', 'بابا غنوج', 'حمص',
   'كنافة', 'بليلة', 'أم علي', 'رز بلبن', 'سحلب', 'فطير مشلتت', 'حواوشي'
 ];
 
-// إيموجيات حسب نوع الوجبة
 const mealEmojis = {
   breakfast: '🌅',
   lunch: '☀️',
@@ -34,7 +35,6 @@ const mealEmojis = {
   international: '🌍',
 };
 
-// نصائح تغذوية مصرية
 const egyptianTips = [
   '💡 الفول والطعمية غنيان بالبروتين النباتي، مثاليان لوجبة الفطور',
   '🌾 الكشري وجبة متكاملة تحتوي على كاربوهيدرات وبروتين وألياف',
@@ -46,10 +46,23 @@ const egyptianTips = [
   '🍲 الشوربة العدس غنية بالبروتين والألياف ومفيدة للجهاز الهضمي',
 ];
 
-export default function MealsTab({ meals, onDeleteMeal, onSendToTelegram, telegramConfigured }: MealsTabProps) {
+export default function MealsTab({ 
+  meals, 
+  onDeleteMeal, 
+  onSendToTelegram, 
+  telegramConfigured,
+  eatenMeals,
+  onMarkMealAsEaten,
+  onUnmarkMealAsEaten
+}: MealsTabProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  // حساب إجمالي جميع الوجبات
+  const today = new Date().toISOString().split('T')[0];
+  
+  function isMealEatenToday(mealId: string): boolean {
+    return eatenMeals.some(m => m.mealId === mealId && m.date === today);
+  }
+
   const totalAllMeals = useMemo(() => {
     return meals.reduce((acc, meal) => ({
       calories: Math.round((acc.calories + meal.totalNutrition.calories) * 10) / 10,
@@ -66,7 +79,6 @@ export default function MealsTab({ meals, onDeleteMeal, onSendToTelegram, telegr
     }), { ...emptyNutrition });
   }, [meals]);
 
-  // التعرف على إذا كانت الوجبة مصرية
   function isEgyptianMeal(meal: SavedMeal): boolean {
     return meal.entries.some(entry => 
       egyptianFoods.some(food => 
@@ -75,11 +87,8 @@ export default function MealsTab({ meals, onDeleteMeal, onSendToTelegram, telegr
     );
   }
 
-  // جلب إيموجي مناسب للوجبة
   function getMealEmoji(meal: SavedMeal): string {
     if (isEgyptianMeal(meal)) return '🇪🇬';
-    
-    // حسب وقت الوجبة
     const hour = new Date(meal.createdAt).getHours();
     if (hour >= 5 && hour < 11) return mealEmojis.breakfast;
     if (hour >= 11 && hour < 16) return mealEmojis.lunch;
@@ -87,19 +96,14 @@ export default function MealsTab({ meals, onDeleteMeal, onSendToTelegram, telegr
     return mealEmojis.snack;
   }
 
-  // جلب نصيحة غذائية للوجبة
   function getMealTip(meal: SavedMeal): string | null {
     if (!isEgyptianMeal(meal)) return null;
-    
-    // اختيار نصيحة عشوائية
     const tipIndex = meal.entries.reduce((acc, entry) => 
       acc + entry.foodNameAr.length, 0
     ) % egyptianTips.length;
-    
     return egyptianTips[tipIndex];
   }
 
-  // حساب عدد الأكلات المصرية في الوجبة
   function countEgyptianItems(meal: SavedMeal): number {
     return meal.entries.filter(entry =>
       egyptianFoods.some(food => 
@@ -143,7 +147,6 @@ export default function MealsTab({ meals, onDeleteMeal, onSendToTelegram, telegr
         className="relative overflow-hidden rounded-3xl p-6 bg-gradient-to-br from-primary-500/10 via-emerald-500/5 to-amber-500/10 border border-primary-500/20"
         style={{ boxShadow: '0 0 40px rgba(14, 165, 233, 0.1), 0 0 80px rgba(16, 185, 129, 0.05)' }}
       >
-        {/* Background glow */}
         <div className="absolute -top-20 -right-20 w-40 h-40 bg-primary-500/10 rounded-full blur-3xl" />
         <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-emerald-500/10 rounded-full blur-3xl" />
 
@@ -212,7 +215,6 @@ export default function MealsTab({ meals, onDeleteMeal, onSendToTelegram, telegr
             </motion.div>
           </div>
 
-          {/* Additional totals */}
           <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 mt-3">
             {[
               { label: 'ألياف', val: `${totalAllMeals.fiber}g`, emoji: '🥬', color: 'text-green-400' },
@@ -258,6 +260,7 @@ export default function MealsTab({ meals, onDeleteMeal, onSendToTelegram, telegr
           const egyptianCount = countEgyptianItems(meal);
           const mealEmoji = getMealEmoji(meal);
           const tip = getMealTip(meal);
+          const eatenToday = isMealEatenToday(meal.id);
 
           return (
             <motion.div
@@ -268,7 +271,7 @@ export default function MealsTab({ meals, onDeleteMeal, onSendToTelegram, telegr
               transition={{ delay: i * 0.05 }}
               className={`glass-card rounded-3xl overflow-hidden transition-all duration-300 ${
                 isEgyptian ? 'border-amber-500/20 border' : ''
-              }`}
+              } ${eatenToday ? 'border-emerald-500/30 bg-emerald-500/5' : ''}`}
             >
               <button
                 onClick={() => setExpandedId(isExpanded ? null : meal.id)}
@@ -290,6 +293,9 @@ export default function MealsTab({ meals, onDeleteMeal, onSendToTelegram, telegr
                       {isEgyptian && (
                         <span className="text-amber-400/50 text-xs mr-1.5">🇪🇬</span>
                       )}
+                      {eatenToday && (
+                        <span className="text-emerald-400/50 text-xs mr-1.5">✅</span>
+                      )}
                     </h3>
                   </div>
                   
@@ -302,6 +308,12 @@ export default function MealsTab({ meals, onDeleteMeal, onSendToTelegram, telegr
                       <>
                         <span>•</span>
                         <span className="text-amber-400/30">{egyptianCount} أكلات مصرية</span>
+                      </>
+                    )}
+                    {eatenToday && (
+                      <>
+                        <span>•</span>
+                        <span className="text-emerald-400/30">مأكولة اليوم</span>
                       </>
                     )}
                   </div>
@@ -368,7 +380,37 @@ export default function MealsTab({ meals, onDeleteMeal, onSendToTelegram, telegr
                         );
                       })}
 
-                      <div className="flex gap-2 mt-4">
+                      <div className="flex gap-2 mt-4 flex-wrap">
+                        {/* Checkbox for marking as eaten */}
+                        <motion.button
+                          whileHover={{ scale: 1.03 }}
+                          whileTap={{ scale: 0.97 }}
+                          onClick={() => {
+                            if (eatenToday) {
+                              onUnmarkMealAsEaten(meal.id);
+                            } else {
+                              onMarkMealAsEaten(meal.id);
+                            }
+                          }}
+                          className={`flex-1 flex items-center justify-center gap-1.5 py-3 rounded-xl transition-all text-xs font-medium border ${
+                            eatenToday
+                              ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20'
+                              : 'bg-white/[0.03] text-white/40 border-white/[0.05] hover:bg-white/[0.06] hover:text-white/60'
+                          }`}
+                        >
+                          {eatenToday ? (
+                            <>
+                              <CheckSquare size={14} />
+                              ✓ مأكولة اليوم
+                            </>
+                          ) : (
+                            <>
+                              <Square size={14} />
+                              حدد كأكلت اليوم
+                            </>
+                          )}
+                        </motion.button>
+
                         <motion.button
                           whileHover={{ scale: 1.03 }}
                           whileTap={{ scale: 0.97 }}
@@ -391,7 +433,6 @@ export default function MealsTab({ meals, onDeleteMeal, onSendToTelegram, telegr
                         )}
                       </div>
 
-                      {/* Egyptian meal badge */}
                       {isEgyptian && (
                         <div className="text-center text-[9px] text-amber-400/20 bg-amber-500/5 rounded-xl py-1.5 border border-amber-500/5">
                           🧆 وجبة مصرية تحتوي على {egyptianCount} أكلات تقليدية

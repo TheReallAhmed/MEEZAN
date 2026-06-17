@@ -43,7 +43,7 @@ export interface FoodEntry {
   quantity: number;
   unit: string;
   nutrition: NutritionValues;
-  category: string; // إضافة التصنيف
+  category: string;
 }
 
 export interface SavedMeal {
@@ -52,12 +52,12 @@ export interface SavedMeal {
   entries: FoodEntry[];
   totalNutrition: NutritionValues;
   createdAt: string;
-  mealType?: ExtraMealType; // إضافة اختيارية
+  mealType?: ExtraMealType;
 }
 
 export type TabType = 'tracker' | 'profile' | 'meals' | 'telegram';
 
-// ========== أنواع جديدة للأكلات الإضافية ==========
+// ========== أنواع الأكلات الإضافية ==========
 export type ExtraMealType = 'وجبة رئيسية' | 'سناك' | 'مشروب' | 'حلويات' | 'فواكه';
 
 export interface DailyExtraFood {
@@ -68,7 +68,31 @@ export interface DailyExtraFood {
   nutrition: NutritionValues;
   quantity: number;
   unit: string;
-  timestamp: string; // ISO string
+  timestamp: string;
   mealType: ExtraMealType;
   notes?: string;
+}
+
+// ========== أنواع الوجبات المأكولة اليوم ==========
+export interface EatenMeal {
+  mealId: string;
+  mealName: string;
+  entries: FoodEntry[];
+  totalNutrition: NutritionValues;
+  eatenAt: string;
+  date: string; // YYYY-MM-DD
+}
+
+export interface EatenExtraFood {
+  id: string;
+  foodName: string;
+  foodNameAr: string;
+  category: string;
+  nutrition: NutritionValues;
+  quantity: number;
+  unit: string;
+  eatenAt: string;
+  mealType: ExtraMealType;
+  notes?: string;
+  source: 'extra' | 'saved_meal';
 }
