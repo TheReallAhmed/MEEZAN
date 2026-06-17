@@ -126,7 +126,7 @@ export default function TrackerTab({
   return (
     <div className="space-y-6">
       {/* ============================================================
-          القسم 1: أكلت اليوم - مع زر "أضف أكل اليوم"
+          القسم 1: أكلت اليوم - مع خانات UI عصرية
           ============================================================ */}
       <motion.div
         initial={{ opacity: 0, y: 30 }}
@@ -139,7 +139,7 @@ export default function TrackerTab({
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => setShowFoodModal(true)}
-            className="btn-glow text-sm flex items-center gap-2 px-5 py-2.5 rounded-2xl text-white font-bold bg-gradient-to-r from-emerald-500 to-green-500 shadow-lg shadow-emerald-500/30"
+            className="btn-glow text-sm flex items-center gap-2 px-5 py-2.5 rounded-2xl text-white font-bold bg-gradient-to-r from-emerald-500 to-teal-500 shadow-lg shadow-emerald-500/30"
           >
             <Plus size={16} />
             أضف أكل اليوم
@@ -155,8 +155,189 @@ export default function TrackerTab({
           </h2>
         </div>
 
-        {/* قائمة أكلات اليوم */}
-        {todayFoods.length === 0 ? (
+        {todayFoods.length > 0 ? (
+          <>
+            {/* ===== خانات الماكروز العصرية ===== */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4"
+            >
+              {/* السعرات */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.05, type: 'spring', bounce: 0.3 }}
+                className="relative bg-gradient-to-br from-orange-500/15 to-red-500/5 rounded-2xl p-4 text-center overflow-hidden border border-orange-500/20"
+              >
+                <div className="relative z-10">
+                  <span className="text-lg">🔥</span>
+                  <div className="text-2xl font-black text-orange-400 mt-1">
+                    {Math.round(todayTotal.calories)}
+                  </div>
+                  <div className="text-[10px] text-white/30 font-medium">سعرات</div>
+                </div>
+              </motion.div>
+
+              {/* البروتين */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.1, type: 'spring', bounce: 0.3 }}
+                className="relative bg-gradient-to-br from-blue-500/15 to-cyan-500/5 rounded-2xl p-4 text-center overflow-hidden border border-blue-500/20"
+              >
+                <div className="relative z-10">
+                  <span className="text-lg">💪</span>
+                  <div className="text-2xl font-black text-blue-400 mt-1">
+                    {Math.round(todayTotal.protein)}<span className="text-sm font-normal opacity-50">g</span>
+                  </div>
+                  <div className="text-[10px] text-white/30 font-medium">بروتين</div>
+                </div>
+              </motion.div>
+
+              {/* الكارب */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.15, type: 'spring', bounce: 0.3 }}
+                className="relative bg-gradient-to-br from-amber-500/15 to-yellow-500/5 rounded-2xl p-4 text-center overflow-hidden border border-amber-500/20"
+              >
+                <div className="relative z-10">
+                  <span className="text-lg">🌾</span>
+                  <div className="text-2xl font-black text-amber-400 mt-1">
+                    {Math.round(todayTotal.carbs)}<span className="text-sm font-normal opacity-50">g</span>
+                  </div>
+                  <div className="text-[10px] text-white/30 font-medium">كربوهيدرات</div>
+                </div>
+              </motion.div>
+
+              {/* الدهون */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.2, type: 'spring', bounce: 0.3 }}
+                className="relative bg-gradient-to-br from-pink-500/15 to-rose-500/5 rounded-2xl p-4 text-center overflow-hidden border border-pink-500/20"
+              >
+                <div className="relative z-10">
+                  <span className="text-lg">🧈</span>
+                  <div className="text-2xl font-black text-pink-400 mt-1">
+                    {Math.round(todayTotal.fat)}<span className="text-sm font-normal opacity-50">g</span>
+                  </div>
+                  <div className="text-[10px] text-white/30 font-medium">دهون</div>
+                </div>
+              </motion.div>
+            </motion.div>
+
+            {/* ===== تفاصيل إضافية ===== */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.25 }}
+              className="flex flex-wrap items-center justify-end gap-3 mb-3 text-[9px] text-white/20 bg-white/[0.02] rounded-xl px-3 py-2 border border-white/[0.03]"
+            >
+              <span>🥬 ألياف: {Math.round(todayTotal.fiber)}g</span>
+              <span className="w-px h-3 bg-white/5" />
+              <span>🍬 سكر: {Math.round(todayTotal.sugar)}g</span>
+              <span className="w-px h-3 bg-white/5" />
+              <span>🧂 صوديوم: {Math.round(todayTotal.sodium)}mg</span>
+              <span className="w-px h-3 bg-white/5" />
+              <span>⚖️ {Math.round(todayTotal.grams)}g</span>
+            </motion.div>
+
+            {/* ===== قائمة الأكلات ===== */}
+            <div className="space-y-2">
+              <AnimatePresence mode="popLayout">
+                {todayFoods.map((food, index) => {
+                  const mealTypeEmojis: Record<string, string> = {
+                    'وجبة رئيسية': '🍽️',
+                    'سناك': '🍿',
+                    'مشروب': '☕',
+                    'حلويات': '🍰',
+                    'فواكه': '🍎',
+                  };
+                  const mealTypeColors: Record<string, string> = {
+                    'وجبة رئيسية': 'border-blue-500/30 bg-blue-500/10 text-blue-400',
+                    'سناك': 'border-amber-500/30 bg-amber-500/10 text-amber-400',
+                    'مشروب': 'border-cyan-500/30 bg-cyan-500/10 text-cyan-400',
+                    'حلويات': 'border-pink-500/30 bg-pink-500/10 text-pink-400',
+                    'فواكه': 'border-green-500/30 bg-green-500/10 text-green-400',
+                  };
+
+                  const isSavedMeal = food.isMeal && food.source === 'saved_meal';
+
+                  return (
+                    <motion.div
+                      key={food.id}
+                      layout
+                      initial={{ opacity: 0, x: 60, scale: 0.9 }}
+                      animate={{ opacity: 1, x: 0, scale: 1 }}
+                      exit={{ opacity: 0, x: -60, scale: 0.8 }}
+                      transition={{ type: 'spring', bounce: 0.2, delay: index * 0.03 }}
+                      className={`group bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.04] hover:border-white/[0.08] rounded-2xl p-3.5 flex items-center gap-3 transition-all duration-300 ${
+                        isSavedMeal ? 'border-primary-500/30 bg-primary-500/5' : ''
+                      }`}
+                    >
+                      <motion.button
+                        whileHover={{ scale: 1.15 }}
+                        whileTap={{ scale: 0.9 }}
+                        onClick={() => onRemoveFoodFromToday(food.id)}
+                        className="text-white/10 hover:text-red-400 transition-all p-1.5 rounded-lg hover:bg-red-500/10 shrink-0"
+                      >
+                        <X size={15} />
+                      </motion.button>
+
+                      <div className="flex-1 flex flex-wrap gap-1.5 items-center">
+                        {isSavedMeal && (
+                          <span className="text-[10px] px-2 py-0.5 rounded-full font-medium border border-primary-500/30 bg-primary-500/10 text-primary-400">
+                            📦 وجبة كاملة
+                          </span>
+                        )}
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium border ${mealTypeColors[food.mealType]}`}>
+                          {mealTypeEmojis[food.mealType]} {food.mealType}
+                        </span>
+                        <span className="text-[10px] text-orange-400/70 bg-orange-400/10 px-2 py-0.5 rounded-full font-medium">
+                          {food.nutrition.calories} cal
+                        </span>
+                        <span className="text-[10px] text-blue-400/70 bg-blue-400/10 px-2 py-0.5 rounded-full font-medium">
+                          {food.nutrition.protein}g P
+                        </span>
+                      </div>
+
+                      <div className="text-right shrink-0">
+                        <div className="text-white/80 font-semibold text-sm">
+                          {food.nameAr}
+                          {isSavedMeal && (
+                            <span className="text-[8px] text-primary-400/50 mr-1">(وجبة)</span>
+                          )}
+                        </div>
+                        <div className="text-white/20 text-xs mt-0.5 font-medium">
+                          {food.quantity} {unitLabels[food.unit] || food.unit}
+                          {food.notes && (
+                            <span className="mr-2 text-white/10">📝 {food.notes}</span>
+                          )}
+                        </div>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </AnimatePresence>
+            </div>
+
+            {/* ===== زر مسح اليوم ===== */}
+            <div className="flex justify-end mt-3">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={onClearToday}
+                className="text-white/20 hover:text-red-400 text-xs flex items-center gap-1 px-3 py-1.5 rounded-xl hover:bg-red-500/10 transition-all border border-transparent hover:border-red-500/20"
+              >
+                <RotateCcw size={13} />
+                مسح اليوم
+              </motion.button>
+            </div>
+          </>
+        ) : (
+          /* ===== حالة عدم وجود أكلات ===== */
           <div className="text-center py-10">
             <motion.div
               animate={{ y: [0, -8, 0] }}
@@ -167,112 +348,6 @@ export default function TrackerTab({
             </motion.div>
             <p className="text-white/20 text-sm font-medium">لم تأكل أي شيء اليوم</p>
             <p className="text-white/10 text-xs mt-1">اضغط على "أضف أكل اليوم" لتسجيل ما أكلته</p>
-          </div>
-        ) : (
-          <div className="space-y-2">
-            <AnimatePresence mode="popLayout">
-              {todayFoods.map((food, index) => {
-                const mealTypeEmojis: Record<string, string> = {
-                  'وجبة رئيسية': '🍽️',
-                  'سناك': '🍿',
-                  'مشروب': '☕',
-                  'حلويات': '🍰',
-                  'فواكه': '🍎',
-                };
-                const mealTypeColors: Record<string, string> = {
-                  'وجبة رئيسية': 'border-blue-500/30 bg-blue-500/10 text-blue-400',
-                  'سناك': 'border-amber-500/30 bg-amber-500/10 text-amber-400',
-                  'مشروب': 'border-cyan-500/30 bg-cyan-500/10 text-cyan-400',
-                  'حلويات': 'border-pink-500/30 bg-pink-500/10 text-pink-400',
-                  'فواكه': 'border-green-500/30 bg-green-500/10 text-green-400',
-                };
-
-                const isSavedMeal = food.isMeal && food.source === 'saved_meal';
-
-                return (
-                  <motion.div
-                    key={food.id}
-                    layout
-                    initial={{ opacity: 0, x: 60, scale: 0.9 }}
-                    animate={{ opacity: 1, x: 0, scale: 1 }}
-                    exit={{ opacity: 0, x: -60, scale: 0.8 }}
-                    transition={{ type: 'spring', bounce: 0.2, delay: index * 0.03 }}
-                    className={`group bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.04] hover:border-white/[0.08] rounded-2xl p-3.5 flex items-center gap-3 transition-all duration-300 ${
-                      isSavedMeal ? 'border-primary-500/30 bg-primary-500/5' : ''
-                    }`}
-                  >
-                    <motion.button
-                      whileHover={{ scale: 1.15 }}
-                      whileTap={{ scale: 0.9 }}
-                      onClick={() => onRemoveFoodFromToday(food.id)}
-                      className="text-white/10 hover:text-red-400 transition-all p-1.5 rounded-lg hover:bg-red-500/10 shrink-0"
-                    >
-                      <X size={15} />
-                    </motion.button>
-
-                    <div className="flex-1 flex flex-wrap gap-1.5 items-center">
-                      {isSavedMeal && (
-                        <span className="text-[10px] px-2 py-0.5 rounded-full font-medium border border-primary-500/30 bg-primary-500/10 text-primary-400">
-                          📦 وجبة كاملة
-                        </span>
-                      )}
-                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium border ${mealTypeColors[food.mealType]}`}>
-                        {mealTypeEmojis[food.mealType]} {food.mealType}
-                      </span>
-                      <span className="text-[10px] text-orange-400/70 bg-orange-400/10 px-2 py-0.5 rounded-full font-medium">
-                        {food.nutrition.calories} cal
-                      </span>
-                      <span className="text-[10px] text-blue-400/70 bg-blue-400/10 px-2 py-0.5 rounded-full font-medium">
-                        {food.nutrition.protein}g
-                      </span>
-                    </div>
-
-                    <div className="text-right shrink-0">
-                      <div className="text-white/80 font-semibold text-sm">
-                        {food.nameAr}
-                        {isSavedMeal && (
-                          <span className="text-[8px] text-primary-400/50 mr-1">(وجبة)</span>
-                        )}
-                      </div>
-                      <div className="text-white/20 text-xs mt-0.5 font-medium">
-                        {food.quantity} {unitLabels[food.unit] || food.unit}
-                        {food.notes && (
-                          <span className="mr-2 text-white/10">📝 {food.notes}</span>
-                        )}
-                      </div>
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </AnimatePresence>
-
-            {/* إجمالي اليوم */}
-            <div className="mt-3 pt-3 border-t border-white/[0.05]">
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-white/20">📊 إجمالي اليوم</span>
-                <div className="flex gap-3 flex-wrap justify-end">
-                  <span className="text-orange-400/80 font-bold">{Math.round(todayTotal.calories)} سعرة</span>
-                  <span className="text-blue-400/60">💪 {todayTotal.protein}g</span>
-                  <span className="text-amber-400/60">🌾 {todayTotal.carbs}g</span>
-                  <span className="text-pink-400/60">🧈 {todayTotal.fat}g</span>
-                </div>
-              </div>
-            </div>
-
-            {/* زر مسح اليوم */}
-            {todayFoods.length > 0 && (
-              <div className="flex justify-end mt-2">
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={onClearToday}
-                  className="text-white/20 hover:text-red-400 text-xs flex items-center gap-1 px-3 py-1.5 rounded-xl hover:bg-red-500/10 transition-all border border-transparent hover:border-red-500/20"
-                >
-                  <RotateCcw size={13} />
-                  مسح اليوم
-                </motion.button>
-              </div>
-            )}
           </div>
         )}
       </motion.div>
@@ -323,10 +398,10 @@ export default function TrackerTab({
 
         <p className="text-white/20 text-xs text-right mb-3">أضف أطعمة لتكوين وجبتك ثم احفظها في "وجباتي" (لن تظهر في أكلت اليوم)</p>
 
-        {/* البحث لإضافة أطعمة للوجبة */}
+        {/* ===== البحث لإضافة أطعمة للوجبة ===== */}
         <FoodSearch onAddEntry={addToMealBuilder} />
 
-        {/* قائمة مكونات الوجبة */}
+        {/* ===== قائمة مكونات الوجبة ===== */}
         {mealEntries.length > 0 ? (
           <div className="mt-4 space-y-2">
             <AnimatePresence mode="popLayout">
@@ -370,7 +445,7 @@ export default function TrackerTab({
               ))}
             </AnimatePresence>
 
-            {/* إجمالي الوجبة */}
+            {/* ===== إجمالي الوجبة ===== */}
             <div className="mt-3 pt-3 border-t border-white/[0.05]">
               <div className="flex items-center justify-between text-xs">
                 <span className="text-white/20">📊 إجمالي الوجبة</span>
