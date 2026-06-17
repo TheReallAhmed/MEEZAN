@@ -24,7 +24,7 @@ function AnimatedNumber({ value }: { value: number }) {
 
 export default function Header({ activeTab, setActiveTab, totalNutrition, profile, todayCount }: HeaderProps) {
   const displayTotal = totalNutrition;
-  const hasData = displayTotal.calories > 0 || (todayCount && todayCount > 0);
+  const hasData = displayTotal.calories > 0 && todayCount && todayCount > 0;
 
   const getTargets = () => {
     if (profile) {
@@ -94,7 +94,7 @@ export default function Header({ activeTab, setActiveTab, totalNutrition, profil
           </motion.div>
         </div>
 
-        {/* شريط الإحصائيات */}
+        {/* شريط الإحصائيات - يظهر فقط إذا كان هناك أكلات */}
         {hasData && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}

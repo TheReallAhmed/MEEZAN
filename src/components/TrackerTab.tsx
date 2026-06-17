@@ -2,8 +2,6 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Save, RotateCcw, Sparkles, ListChecks, Plus, X, StickyNote, Clock } from 'lucide-react';
 import FoodSearch from './FoodSearch';
-import FoodList from './FoodList';
-import NutritionSummary from './NutritionSummary';
 import type { FoodEntry, NutritionValues, SavedMeal, UserProfile, DailyEatenFood } from '../types';
 import { unitLabels } from '../data/foodDatabase';
 
@@ -124,28 +122,42 @@ export default function TrackerTab({
 
   return (
     <div className="space-y-6">
-      {/* Food Search Section */}
+      {/* ===== زر إضافة أكل اليوم ===== */}
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ type: 'spring', bounce: 0.2 }}
         className="glass-card rounded-3xl p-5 sm:p-6"
       >
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between">
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => setShowFoodModal(true)}
-            className="btn-glow text-xs flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-white font-medium bg-gradient-to-r from-primary-500/20 to-emerald-500/20 border border-primary-500/20"
+            className="btn-glow text-sm flex items-center gap-2 px-6 py-3 rounded-2xl text-white font-bold bg-gradient-to-r from-primary-500 to-emerald-500 shadow-lg shadow-primary-500/30"
           >
-            <Plus size={13} />
-            أضف طعام
+            <Plus size={18} />
+            أضف أكل اليوم
           </motion.button>
           <h2 className="text-base font-bold text-white/80 flex items-center gap-2">
             <Sparkles size={16} className="text-primary-400" />
             أضف طعامك
           </h2>
         </div>
+        <p className="text-white/20 text-xs text-right mt-2">أضف طعاماً جديداً إلى قائمة اليوم مع تحديد التصنيف</p>
+      </motion.div>
+
+      {/* ===== البحث عن طعام ===== */}
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.05, type: 'spring', bounce: 0.2 }}
+        className="glass-card rounded-3xl p-5 sm:p-6"
+      >
+        <h2 className="text-base font-bold text-white/80 text-right mb-4 flex items-center justify-end gap-2">
+          <span className="text-sm text-white/30">🔍</span>
+          بحث سريع
+        </h2>
         <FoodSearch onAddEntry={(entry) => {
           // إضافة مباشرة مع تصنيف افتراضي
           const newFood: DailyEatenFood = {
@@ -164,7 +176,7 @@ export default function TrackerTab({
         }} />
       </motion.div>
 
-      {/* Today's Food List */}
+      {/* ===== قائمة أكلت اليوم ===== */}
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
@@ -216,7 +228,7 @@ export default function TrackerTab({
               🍽️
             </motion.div>
             <p className="text-white/20 text-base font-medium">لم تأكل أي شيء اليوم</p>
-            <p className="text-white/10 text-sm mt-1">ابحث عن طعام وأضفه إلى قائمة اليوم</p>
+            <p className="text-white/10 text-sm mt-1">اضغط على "أضف أكل اليوم" أو ابحث عن طعام</p>
           </div>
         ) : (
           <div className="space-y-2">
@@ -306,7 +318,7 @@ export default function TrackerTab({
         )}
       </motion.div>
 
-      {/* Add Food Modal */}
+      {/* ===== مودال إضافة أكل اليوم ===== */}
       <AnimatePresence>
         {showFoodModal && (
           <motion.div
@@ -326,7 +338,7 @@ export default function TrackerTab({
             >
               <div className="text-center">
                 <div className="text-4xl mb-2">📊</div>
-                <h3 className="text-lg font-bold text-white">أضف طعام اليوم</h3>
+                <h3 className="text-lg font-bold text-white">أضف أكل اليوم</h3>
                 <p className="text-xs text-white/25 mt-1">اختر الطعام وحدد التصنيف المناسب</p>
               </div>
 
@@ -422,7 +434,7 @@ export default function TrackerTab({
         )}
       </AnimatePresence>
 
-      {/* Save Meal Dialog */}
+      {/* ===== مودال حفظ كوجبة ===== */}
       <AnimatePresence>
         {showSaveDialog && (
           <motion.div
@@ -479,7 +491,7 @@ export default function TrackerTab({
         )}
       </AnimatePresence>
 
-      {/* Saved toast */}
+      {/* ===== Toast حفظ ===== */}
       <AnimatePresence>
         {saved && (
           <motion.div
@@ -492,13 +504,6 @@ export default function TrackerTab({
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* Nutrition Summary */}
-      <NutritionSummary 
-        total={todayTotal} 
-        entryCount={todayFoods.length} 
-        profile={profile}
-      />
     </div>
   );
 }

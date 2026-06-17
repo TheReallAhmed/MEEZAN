@@ -2,8 +2,8 @@ import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Calendar, ChevronLeft, ChevronRight, BarChart3, PieChart,
-  Dumbbell, Wheat, Droplet, Award, Flame, Target, TrendingUp, 
-  TrendingDown, Activity, Weight
+  Dumbbell, Wheat, Droplet, Flame, Target, TrendingUp, 
+  TrendingDown, Activity, Weight, CheckCircle, XCircle
 } from 'lucide-react';
 import type { 
   DailyStats, MonthlyStats, YearlyStats, 
@@ -109,10 +109,12 @@ export default function StatsTab({ profile, eatenFoods }: StatsTabProps) {
     });
 
     monthlyMap.forEach(stat => {
-      stat.avgDailyCalories = Math.round(stat.totalCalories / stat.daysLogged);
-      stat.avgDailyProtein = Math.round(stat.totalProtein / stat.daysLogged);
-      stat.avgDailyCarbs = Math.round(stat.totalCarbs / stat.daysLogged);
-      stat.avgDailyFat = Math.round(stat.totalFat / stat.daysLogged);
+      if (stat.daysLogged > 0) {
+        stat.avgDailyCalories = Math.round(stat.totalCalories / stat.daysLogged);
+        stat.avgDailyProtein = Math.round(stat.totalProtein / stat.daysLogged);
+        stat.avgDailyCarbs = Math.round(stat.totalCarbs / stat.daysLogged);
+        stat.avgDailyFat = Math.round(stat.totalFat / stat.daysLogged);
+      }
     });
 
     const monthlyStats: MonthlyStats[] = Array.from(monthlyMap.values());
@@ -154,7 +156,9 @@ export default function StatsTab({ profile, eatenFoods }: StatsTabProps) {
     });
 
     yearlyMap.forEach(stat => {
-      stat.avgMonthlyCalories = Math.round(stat.totalCalories / stat.monthsLogged);
+      if (stat.monthsLogged > 0) {
+        stat.avgMonthlyCalories = Math.round(stat.totalCalories / stat.monthsLogged);
+      }
     });
 
     const yearlyStats: YearlyStats[] = Array.from(yearlyMap.values());
@@ -210,9 +214,387 @@ export default function StatsTab({ profile, eatenFoods }: StatsTabProps) {
     };
   }, [eatenFoods, profile]);
 
-  // ... باقي الكود كما هو (renderDailyView, renderMonthlyView, renderYearlyView)
-  // تم اختصاره لتوفير المساحة، لكنه يعمل بنفس الطريقة
-  
+  // ============================================
+  // عرض الإحصائيات اليومية
+  // ============================================
+  const renderDailyView = () => {
+    const today = new Date().toISOString().split('T')[0];
+    const todayStats = statsData.dailyStats.find(s => s.date === today);
+    const last7Days = statsData.dailyStats.slice(-7);
+
+    if (statsData.dailyStats.length === 0) {
+      return (
+        <div className="text-center py-12">
+          <div className="text-6xl mb-4 opacity-20">📊</div>
+          <p className="text-white/20 text-sm">لا توجد بيانات</p>
+          <p className="text-white/10 text-xs mt-1">سجل وجباتك لتظهر الإحصائيات</p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-4">
+        {/* Today's Stats */}
+        <div className="glass-card rounded-2xl p-4">
+          <h3 className="text-xs text-white/40 font-medium text-right mb-3">📅 اليوم</h3>
+          {todayStats ? (
+            <div className="grid grid-cols-4 gap-2">
+              <div className="text-center">
+                <div className="text-lg font-black text-orange-400">{Math.round(todayStats.totalCalories)}</div>
+                <div className="text-[8px] text-white/20">سعرة</div>
+              </div>
+              <div className="text-center">
+                <div className="text-sm font-bold text-blue-400">{Math.round(todayStats.totalProtein)}g</div>
+                <div className="text-[8px] text-white/20">بروتين</div>
+              </div>
+              <div className="text-center">
+                <div className="text-sm font-bold text-amber-400">{Math.round(todayStats.totalCarbs)}g</div>
+                <div className="text-[8px] text-white/20">كارب</div>
+              </div>
+              <div className="text-center">
+                <div className="text-sm font-bold text-pink-400">{Math.round(todayStats.totalFat)}g</div>
+                <div className="text-[8px] text-white/20">دهون</div>
+              </div>
+            </div>
+          ) : (
+            <p className="text-center text-white/15 text-xs">لم تسجل أي وجبات اليوم</p>
+          )}
+        </div>
+
+        {/* Last 7 Days */}
+        <div className="glass-card rounded-2xl p-4">
+          <h3 className="text-xs text-white/40 font-medium text-right mb-3">📈 آخر 7 أيام</h3>
+          <div className="flex items-end gap-1 h-20">
+            {last7Days.map((stat, i) => {
+              const height = Math.min((stat.totalCalories / (profile?.targetCalories || 2000)) * 100, 100);
+              const isMet = stat.metGoal;
+              return (
+                <div key={i} className="flex-1 flex flex-col items-center gap-0.5">
+                  <div 
+                    className={`w-full rounded-sm transition-all duration-500 ${
+                      isMet ? 'bg-emerald-500/60' : 'bg-orange-500/40'
+                    }`}
+                    style={{ height: `${Math.max(height * 0.6, 2)}%` }}
+                  />
+                  <span className="text-[5px] text-white/10">{new Date(stat.date).getDate()}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Streak Info */}
+        <div className="grid grid-cols-2 gap-3">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="glass-card rounded-2xl p-4 text-center border border-emerald-500/20"
+          >
+            <div className="flex items-center justify-center gap-1">
+              <span className="text-2xl">🔥</span>
+              <span className="text-2xl font-black text-emerald-400">{statsData.currentStreak}</span>
+            </div>
+            <div className="text-[10px] text-white/30">أيام متتالية</div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.05 }}
+            className="glass-card rounded-2xl p-4 text-center border border-amber-500/20"
+          >
+            <div className="flex items-center justify-center gap-1">
+              <span className="text-2xl">🏆</span>
+              <span className="text-2xl font-black text-amber-400">{statsData.bestStreak}</span>
+            </div>
+            <div className="text-[10px] text-white/30">أفضل سلسلة</div>
+          </motion.div>
+        </div>
+      </div>
+    );
+  };
+
+  // ============================================
+  // عرض الإحصائيات الشهرية
+  // ============================================
+  const renderMonthlyView = () => {
+    const monthData = statsData.monthlyStats.find(m => m.month === selectedMonth);
+    if (!monthData) {
+      return (
+        <div className="text-center py-12">
+          <div className="text-6xl mb-4 opacity-20">📊</div>
+          <p className="text-white/20 text-sm">لا توجد بيانات لهذا الشهر</p>
+          <p className="text-white/10 text-xs mt-1">سجل وجباتك لتظهر الإحصائيات</p>
+        </div>
+      );
+    }
+
+    const monthName = new Date(monthData.month + '-01').toLocaleDateString('ar', { month: 'long', year: 'numeric' });
+    const daysInMonth = new Date(
+      parseInt(monthData.month.split('-')[0]),
+      parseInt(monthData.month.split('-')[1]),
+      0
+    ).getDate();
+
+    const completionRate = Math.round((monthData.daysLogged / daysInMonth) * 100);
+    const goalRate = monthData.daysLogged > 0 ? Math.round((monthData.daysMetGoal / monthData.daysLogged) * 100) : 0;
+
+    return (
+      <div className="space-y-4">
+        {/* Month Header */}
+        <div className="flex items-center justify-between glass-card rounded-2xl p-4">
+          <button
+            onClick={() => {
+              const [year, month] = selectedMonth.split('-').map(Number);
+              const newMonth = month === 1 ? 12 : month - 1;
+              const newYear = month === 1 ? year - 1 : year;
+              setSelectedMonth(`${newYear}-${String(newMonth).padStart(2, '0')}`);
+            }}
+            className="text-white/30 hover:text-white/60 p-2 rounded-xl transition-all"
+          >
+            <ChevronLeft size={20} />
+          </button>
+          <span className="text-white font-bold text-sm">{monthName}</span>
+          <button
+            onClick={() => {
+              const [year, month] = selectedMonth.split('-').map(Number);
+              const newMonth = month === 12 ? 1 : month + 1;
+              const newYear = month === 12 ? year + 1 : year;
+              setSelectedMonth(`${newYear}-${String(newMonth).padStart(2, '0')}`);
+            }}
+            className="text-white/30 hover:text-white/60 p-2 rounded-xl transition-all"
+          >
+            <ChevronRight size={20} />
+          </button>
+        </div>
+
+        {/* Stats Grid */}
+        <div className="grid grid-cols-2 gap-3">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="glass-card rounded-2xl p-4 text-center"
+          >
+            <div className="text-3xl font-black text-blue-400">{monthData.daysLogged}</div>
+            <div className="text-[10px] text-white/30">أيام مسجلة</div>
+            <div className="mt-1 text-[8px] text-white/15">{completionRate}% من الشهر</div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.05 }}
+            className="glass-card rounded-2xl p-4 text-center"
+          >
+            <div className="text-3xl font-black text-emerald-400">{monthData.daysMetGoal}</div>
+            <div className="text-[10px] text-white/30">أيام حققت الهدف</div>
+            <div className="mt-1 text-[8px] text-white/15">{goalRate}% من الأيام</div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.1 }}
+            className="glass-card rounded-2xl p-4 text-center"
+          >
+            <div className="text-2xl font-black text-orange-400">{Math.round(monthData.totalCalories).toLocaleString()}</div>
+            <div className="text-[10px] text-white/30">إجمالي سعرات</div>
+            <div className="mt-1 text-[8px] text-white/15">معدل {Math.round(monthData.avgDailyCalories)}/يوم</div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.15 }}
+            className="glass-card rounded-2xl p-4 text-center"
+          >
+            <div className="text-2xl font-black text-purple-400">{monthData.mealCount + monthData.extraCount}</div>
+            <div className="text-[10px] text-white/30">إجمالي وجبات</div>
+            <div className="mt-1 text-[8px] text-white/15">🍽️ {monthData.mealCount} | 🍿 {monthData.extraCount}</div>
+          </motion.div>
+        </div>
+
+        {/* Macro Averages */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="glass-card rounded-2xl p-4"
+        >
+          <h3 className="text-xs text-white/40 font-medium text-right mb-3">📊 متوسطات اليوم الواحد</h3>
+          <div className="grid grid-cols-3 gap-3">
+            <div className="text-center">
+              <div className="flex items-center justify-center gap-1 text-blue-400">
+                <Dumbbell size={14} />
+                <span className="text-sm font-bold">{Math.round(monthData.avgDailyProtein)}</span>
+                <span className="text-[8px] text-white/20">g</span>
+              </div>
+              <div className="text-[8px] text-white/20">بروتين</div>
+            </div>
+            <div className="text-center">
+              <div className="flex items-center justify-center gap-1 text-amber-400">
+                <Wheat size={14} />
+                <span className="text-sm font-bold">{Math.round(monthData.avgDailyCarbs)}</span>
+                <span className="text-[8px] text-white/20">g</span>
+              </div>
+              <div className="text-[8px] text-white/20">كارب</div>
+            </div>
+            <div className="text-center">
+              <div className="flex items-center justify-center gap-1 text-pink-400">
+                <Droplet size={14} />
+                <span className="text-sm font-bold">{Math.round(monthData.avgDailyFat)}</span>
+                <span className="text-[8px] text-white/20">g</span>
+              </div>
+              <div className="text-[8px] text-white/20">دهون</div>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Daily Progress Chart */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="glass-card rounded-2xl p-4"
+        >
+          <h3 className="text-xs text-white/40 font-medium text-right mb-3">📈 تقدم السعرات اليومية</h3>
+          <div className="flex items-end gap-1 h-24">
+            {statsData.dailyStats
+              .filter(s => s.date.startsWith(selectedMonth))
+              .map((stat, i) => {
+                const height = Math.min((stat.totalCalories / (profile?.targetCalories || 2000)) * 100, 100);
+                const isMet = stat.metGoal;
+                return (
+                  <div key={i} className="flex-1 flex flex-col items-center gap-0.5">
+                    <div 
+                      className={`w-full rounded-sm transition-all duration-500 ${
+                        isMet ? 'bg-emerald-500/60' : 'bg-orange-500/40'
+                      }`}
+                      style={{ height: `${Math.max(height * 0.7, 2)}%` }}
+                    />
+                    <span className="text-[5px] text-white/10">{new Date(stat.date).getDate()}</span>
+                  </div>
+                );
+              })}
+          </div>
+        </motion.div>
+      </div>
+    );
+  };
+
+  // ============================================
+  // عرض الإحصائيات السنوية
+  // ============================================
+  const renderYearlyView = () => {
+    const yearData = statsData.yearlyStats.find(y => y.year === selectedYear);
+    if (!yearData) {
+      return (
+        <div className="text-center py-12">
+          <div className="text-6xl mb-4 opacity-20">📊</div>
+          <p className="text-white/20 text-sm">لا توجد بيانات لهذه السنة</p>
+          <p className="text-white/10 text-xs mt-1">سجل وجباتك لتظهر الإحصائيات</p>
+        </div>
+      );
+    }
+
+    const monthsCount = 12;
+    const completionRate = Math.round((yearData.monthsLogged / monthsCount) * 100);
+
+    return (
+      <div className="space-y-4">
+        {/* Year Header */}
+        <div className="flex items-center justify-between glass-card rounded-2xl p-4">
+          <button
+            onClick={() => setSelectedYear(String(parseInt(selectedYear) - 1))}
+            className="text-white/30 hover:text-white/60 p-2 rounded-xl transition-all"
+          >
+            <ChevronLeft size={20} />
+          </button>
+          <span className="text-white font-bold text-sm">{selectedYear}</span>
+          <button
+            onClick={() => setSelectedYear(String(parseInt(selectedYear) + 1))}
+            className="text-white/30 hover:text-white/60 p-2 rounded-xl transition-all"
+          >
+            <ChevronRight size={20} />
+          </button>
+        </div>
+
+        {/* Stats Grid */}
+        <div className="grid grid-cols-2 gap-3">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="glass-card rounded-2xl p-4 text-center"
+          >
+            <div className="text-3xl font-black text-blue-400">{yearData.monthsLogged}</div>
+            <div className="text-[10px] text-white/30">أشهر مسجلة</div>
+            <div className="mt-1 text-[8px] text-white/15">{completionRate}% من السنة</div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.05 }}
+            className="glass-card rounded-2xl p-4 text-center"
+          >
+            <div className="text-2xl font-black text-orange-400">{Math.round(yearData.totalCalories / 1000).toFixed(1)}k</div>
+            <div className="text-[10px] text-white/30">إجمالي سعرات</div>
+            <div className="mt-1 text-[8px] text-white/15">{Math.round(yearData.avgMonthlyCalories).toLocaleString()}/شهر</div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.1 }}
+            className="glass-card rounded-2xl p-4 text-center"
+          >
+            <div className="text-2xl font-black text-purple-400">{yearData.totalDaysLogged}</div>
+            <div className="text-[10px] text-white/30">إجمالي أيام</div>
+            <div className="mt-1 text-[8px] text-white/15">{Math.round(yearData.totalDaysLogged / 30)} شهر</div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.15 }}
+            className="glass-card rounded-2xl p-4 text-center"
+          >
+            <div className="text-2xl font-black text-emerald-400">{yearData.totalMeals + yearData.totalExtras}</div>
+            <div className="text-[10px] text-white/30">إجمالي وجبات</div>
+            <div className="mt-1 text-[8px] text-white/15">🍽️ {yearData.totalMeals} | 🍿 {yearData.totalExtras}</div>
+          </motion.div>
+        </div>
+
+        {/* Yearly Totals */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="glass-card rounded-2xl p-4"
+        >
+          <h3 className="text-xs text-white/40 font-medium text-right mb-3">📊 إجمالي السنة</h3>
+          <div className="grid grid-cols-3 gap-3">
+            <div className="text-center">
+              <div className="text-sm font-bold text-blue-400">{Math.round(yearData.totalProtein / 1000).toFixed(1)}k</div>
+              <div className="text-[8px] text-white/20">💪 بروتين (g)</div>
+            </div>
+            <div className="text-center">
+              <div className="text-sm font-bold text-amber-400">{Math.round(yearData.totalCarbs / 1000).toFixed(1)}k</div>
+              <div className="text-[8px] text-white/20">🌾 كارب (g)</div>
+            </div>
+            <div className="text-center">
+              <div className="text-sm font-bold text-pink-400">{Math.round(yearData.totalFat / 1000).toFixed(1)}k</div>
+              <div className="text-[8px] text-white/20">🧈 دهون (g)</div>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+    );
+  };
+
+  // ============================================
+  // Main Render
+  // ============================================
   return (
     <div className="space-y-4">
       {/* View Selector */}
