@@ -33,6 +33,7 @@ const palestinianQuickAdds = [
   { id: 'falafel_palestinian', name: 'فلافل فلسطيني' },
   { id: 'maamoul_palestinian', name: 'معمول' },
   { id: 'zaatar_bread_palestinian', name: 'خبز زعتر' },
+  { id: 'fateer_lahme_medium', name: 'فطير باللحمه' },
 ];
 
 interface FoodSearchProps {
@@ -113,7 +114,6 @@ export default function FoodSearch({ onAddEntry }: FoodSearchProps) {
 
   const preview = selectedFood ? calculateNutrition(selectedFood, quantity, unit) : null;
 
-  // جلب الإيموجي للتصنيف
   function getCategoryEmoji(categoryId: string): string {
     const cat = categories.find((c) => c.id === categoryId);
     return cat?.emoji || '🍽️';
@@ -266,19 +266,23 @@ export default function FoodSearch({ onAddEntry }: FoodSearchProps) {
               className="overflow-hidden"
             >
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 mt-2">
-                {getCategoryFoods(showCategory).map((food, i) => (
-                  <motion.button
-                    key={food.id}
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: i * 0.02 }}
-                    onClick={() => selectFood(food)}
-                    className="glass-card rounded-xl px-3 py-2.5 text-right text-xs text-white/50 hover:text-white transition-all hover:bg-white/[0.05]"
-                  >
-                    <span className="ml-1.5">{getCategoryEmoji(food.category)}</span>
-                    {food.nameAr}
-                  </motion.button>
-                ))}
+                {getCategoryFoods(showCategory).map((food, i) => {
+                  // التحقق من وجود الأكلات في التصنيف
+                  console.log(`🔍 تصنيف ${showCategory}:`, food.nameAr);
+                  return (
+                    <motion.button
+                      key={food.id}
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: i * 0.02 }}
+                      onClick={() => selectFood(food)}
+                      className="glass-card rounded-xl px-3 py-2.5 text-right text-xs text-white/50 hover:text-white transition-all hover:bg-white/[0.05]"
+                    >
+                      <span className="ml-1.5">{getCategoryEmoji(food.category)}</span>
+                      {food.nameAr}
+                    </motion.button>
+                  );
+                })}
               </div>
             </motion.div>
           )}
@@ -365,7 +369,6 @@ export default function FoodSearch({ onAddEntry }: FoodSearchProps) {
               </motion.div>
             )}
 
-            {/* Display total grams */}
             <div className="text-center text-xs text-white/20">
               الوزن التقريبي: {preview?.grams || 0} غرام
             </div>

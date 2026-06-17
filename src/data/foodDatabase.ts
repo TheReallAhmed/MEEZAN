@@ -495,11 +495,16 @@ export const foodDatabase: FoodItem[] = [
 },
 
 // ----- فطير باللحمه (وسط) - المكونات: عجين 80g + لحم 25g + بصل 10g + بندورة 10g -----
+// ============================================================
+// 🇵🇸 فطير باللحمه (معجنات فلسطينية)
+// ============================================================
+
+// مكونات الحبة الواحدة (متوسطة): عجينة 80g + لحم مفروم 25g + بصل 10g + بندورة 10g + بهارات
 {
   id: 'fateer_lahme_medium',
   name: 'Fateer bil Lahme (Medium)',
   nameAr: 'فطير باللحمه - وسط',
-  category: 'prepared',
+  category: 'palestinian',
   defaultUnit: 'piece',
   availableUnits: ['piece', 'gram'],
   nutritionPer100g: {
@@ -516,7 +521,48 @@ export const foodDatabase: FoodItem[] = [
   },
   pieceWeightG: 130
 },
-
+{
+  id: 'fateer_lahme_small',
+  name: 'Fateer bil Lahme (Small)',
+  nameAr: 'فطير باللحمه - صغير',
+  category: 'palestinian',
+  defaultUnit: 'piece',
+  availableUnits: ['piece', 'gram'],
+  nutritionPer100g: {
+    calories: 235,
+    protein: 9.5,
+    carbs: 28,
+    fat: 9,
+    fiber: 1.5,
+    sugar: 2.5,
+    sodium: 280,
+    iron: 1.8,
+    calcium: 35,
+    vitaminC: 4,
+  },
+  pieceWeightG: 90
+},
+{
+  id: 'fateer_lahme_large',
+  name: 'Fateer bil Lahme (Large)',
+  nameAr: 'فطير باللحمه - كبير',
+  category: 'palestinian',
+  defaultUnit: 'piece',
+  availableUnits: ['piece', 'gram'],
+  nutritionPer100g: {
+    calories: 235,
+    protein: 9.5,
+    carbs: 28,
+    fat: 9,
+    fiber: 1.5,
+    sugar: 2.5,
+    sodium: 280,
+    iron: 1.8,
+    calcium: 35,
+    vitaminC: 4,
+  },
+  pieceWeightG: 180
+},
 // ----- المسخن - الطبق الوطني الفلسطيني (دجاج مع خبز وبصل وسماق) -----
 {
   id: 'musakhan',
