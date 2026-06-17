@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Utensils, User, BookOpen, Send, Dumbbell, Wheat, Droplet } from 'lucide-react';
+import { Utensils, User, BookOpen, Send, Dumbbell, Wheat, Droplet, BarChart3 } from 'lucide-react';
 import type { TabType, NutritionValues, UserProfile } from '../types';
 
 interface HeaderProps {
@@ -14,6 +14,7 @@ interface HeaderProps {
 const tabs: { id: TabType; label: string; icon: React.ReactNode }[] = [
   { id: 'tracker', label: 'الحاسبة', icon: <Utensils size={18} /> },
   { id: 'meals', label: 'وجباتي', icon: <BookOpen size={18} /> },
+  { id: 'stats', label: 'إحصائياتي', icon: <BarChart3 size={18} /> },
   { id: 'profile', label: 'ملفي', icon: <User size={18} /> },
   { id: 'telegram', label: 'تيليغرام', icon: <Send size={18} /> },
 ];
@@ -58,7 +59,7 @@ export default function Header({ activeTab, setActiveTab, totalNutrition, profil
       <div className="max-w-4xl mx-auto px-4">
         {/* Top Row: Logo (Right) + Tab Navigation (Left) */}
         <div className="flex items-center justify-between py-2">
-          {/* Logo - RIGHT side (العربية من اليمين) */}
+          {/* Logo - RIGHT side */}
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -185,7 +186,7 @@ export default function Header({ activeTab, setActiveTab, totalNutrition, profil
                     </div>
                   </div>
 
-                  {/* Calories Progress Ring (Small) */}
+                  {/* Calories Progress Ring */}
                   <div className="hidden sm:flex items-center gap-1">
                     <div className="relative w-5 h-5">
                       <svg className="w-5 h-5 -rotate-90">
@@ -231,7 +232,7 @@ export default function Header({ activeTab, setActiveTab, totalNutrition, profil
                 )}
               </div>
 
-              {/* Additional details - Fiber, Sugar, Sodium (small) */}
+              {/* Additional details */}
               <div className="flex items-center justify-end gap-3 mt-1 text-[7px] text-white/15">
                 <span>🥬 ألياف: {Math.round(displayTotal.fiber)}g</span>
                 <span>🍬 سكر: {Math.round(displayTotal.sugar)}g</span>

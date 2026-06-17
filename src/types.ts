@@ -55,7 +55,7 @@ export interface SavedMeal {
   mealType?: ExtraMealType;
 }
 
-export type TabType = 'tracker' | 'profile' | 'meals' | 'telegram';
+export type TabType = 'tracker' | 'profile' | 'meals' | 'telegram' | 'stats';
 
 // ========== أنواع الأكلات الإضافية ==========
 export type ExtraMealType = 'وجبة رئيسية' | 'سناك' | 'مشروب' | 'حلويات' | 'فواكه';
@@ -95,4 +95,63 @@ export interface EatenExtraFood {
   mealType: ExtraMealType;
   notes?: string;
   source: 'extra' | 'saved_meal';
+}
+
+// ========== أنواع الإحصائيات ==========
+export interface DailyStats {
+  date: string; // YYYY-MM-DD
+  totalCalories: number;
+  totalProtein: number;
+  totalCarbs: number;
+  totalFat: number;
+  totalFiber: number;
+  totalSugar: number;
+  totalSodium: number;
+  mealCount: number;
+  extraCount: number;
+  metGoal: boolean;
+}
+
+export interface MonthlyStats {
+  month: string; // YYYY-MM
+  totalCalories: number;
+  totalProtein: number;
+  totalCarbs: number;
+  totalFat: number;
+  totalFiber: number;
+  totalSugar: number;
+  totalSodium: number;
+  avgDailyCalories: number;
+  avgDailyProtein: number;
+  avgDailyCarbs: number;
+  avgDailyFat: number;
+  daysLogged: number;
+  daysMetGoal: number;
+  mealCount: number;
+  extraCount: number;
+}
+
+export interface YearlyStats {
+  year: string; // YYYY
+  totalCalories: number;
+  totalProtein: number;
+  totalCarbs: number;
+  totalFat: number;
+  totalFiber: number;
+  totalSugar: number;
+  totalSodium: number;
+  avgMonthlyCalories: number;
+  monthsLogged: number;
+  totalDaysLogged: number;
+  totalMeals: number;
+  totalExtras: number;
+}
+
+export interface StatsData {
+  dailyStats: DailyStats[];
+  monthlyStats: MonthlyStats[];
+  yearlyStats: YearlyStats[];
+  currentStreak: number;
+  bestStreak: number;
+  totalDaysLogged: number;
 }
