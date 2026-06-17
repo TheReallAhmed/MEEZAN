@@ -227,8 +227,8 @@ export default function App() {
             key={i}
             className="particle"
             style={{
-              width: `${2 + Math.random() 4}px`,
-              height: `${2 + Math.random() 4}px`,
+              width: `${2 + Math.random() * 4}px`,
+              height: `${2 + Math.random() * 4}px`,
               left: `${Math.random() * 100}%`,
               bottom: '-10px',
               background: i % 3 === 0 
