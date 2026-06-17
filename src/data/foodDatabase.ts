@@ -65,6 +65,8 @@ export const categories = [
   { id: 'sauces', name: 'صلصات وتوابل', emoji: '🥫' },
   { id: 'prepared', name: 'أطباق جاهزة', emoji: '🍲' },
   { id: 'supplements', name: 'مكملات غذائية', emoji: '💊' },
+  // ===== التصنيف الجديد =====
+  { id: 'palestinian', name: 'مأكولات فلسطينية شهيرة', emoji: '🇵🇸' },
 ];
 
 export const foodDatabase: FoodItem[] = [
@@ -419,12 +421,80 @@ export const foodDatabase: FoodItem[] = [
 
 
 
-// ============================================
-// 🍕 المأكولات الفلسطينية
-// ============================================
+// ============================================================
+// 🇵🇸 المأكولات الفلسطينية المشهورة
+// ============================================================
 
-// ===== فطير باللحمه (معجنات فلسطينية) =====
-// مكونات الحبة الواحدة (متوسطة): عجينة 80g + لحم مفروم 25g + بصل 10g + بندورة 10g + بهارات
+// ----- الأرز الأصفر الفلسطيني (أرز بالبهارات والكركم، بدون لحم) -----
+{
+  id: 'yellow_rice_palestinian',
+  name: 'Yellow Rice Palestinian',
+  nameAr: 'أرز أصفر فلسطيني',
+  category: 'prepared',
+  defaultUnit: 'bowl',
+  availableUnits: ['bowl', 'cup', 'gram'],
+  nutritionPer100g: {
+    calories: 150,
+    protein: 3,
+    carbs: 32,
+    fat: 1.5,
+    fiber: 0.8,
+    sugar: 0.3,
+    sodium: 200,
+    iron: 0.7,
+    calcium: 12,
+    vitaminC: 0,
+  },
+  pieceWeightG: 200
+},
+
+// ----- الكبسة الفلسطينية (أرز بالبهارات والخضار، بدون لحم) -----
+{
+  id: 'kabsa_palestinian',
+  name: 'Kabsa Palestinian',
+  nameAr: 'كبسة فلسطينية',
+  category: 'prepared',
+  defaultUnit: 'bowl',
+  availableUnits: ['bowl', 'gram'],
+  nutritionPer100g: {
+    calories: 160,
+    protein: 3.5,
+    carbs: 33,
+    fat: 2,
+    fiber: 1.2,
+    sugar: 1.5,
+    sodium: 250,
+    iron: 0.9,
+    calcium: 15,
+    vitaminC: 2,
+  },
+  pieceWeightG: 250
+},
+
+// ----- الأرز بالشعرية الفلسطيني -----
+{
+  id: 'rice_vermicelli_palestinian',
+  name: 'Rice with Vermicelli Palestinian',
+  nameAr: 'أرز بالشعرية فلسطيني',
+  category: 'prepared',
+  defaultUnit: 'bowl',
+  availableUnits: ['bowl', 'cup', 'gram'],
+  nutritionPer100g: {
+    calories: 155,
+    protein: 3.2,
+    carbs: 33,
+    fat: 1.8,
+    fiber: 0.7,
+    sugar: 0.4,
+    sodium: 180,
+    iron: 0.8,
+    calcium: 14,
+    vitaminC: 0,
+  },
+  pieceWeightG: 200
+},
+
+// ----- فطير باللحمه (وسط) - المكونات: عجين 80g + لحم 25g + بصل 10g + بندورة 10g -----
 {
   id: 'fateer_lahme_medium',
   name: 'Fateer bil Lahme (Medium)',
@@ -444,54 +514,10 @@ export const foodDatabase: FoodItem[] = [
     calcium: 35,
     vitaminC: 4,
   },
-  pieceWeightG: 130 // 80g عجين + 25g لحم + 10g بصل + 10g بندورة + 5g بهارات وزيت
-},
-{
-  id: 'fateer_lahme_small',
-  name: 'Fateer bil Lahme (Small)',
-  nameAr: 'فطير باللحمه - صغير',
-  category: 'prepared',
-  defaultUnit: 'piece',
-  availableUnits: ['piece', 'gram'],
-  nutritionPer100g: {
-    calories: 235,
-    protein: 9.5,
-    carbs: 28,
-    fat: 9,
-    fiber: 1.5,
-    sugar: 2.5,
-    sodium: 280,
-    iron: 1.8,
-    calcium: 35,
-    vitaminC: 4,
-  },
-  pieceWeightG: 90 // 55g عجين + 18g لحم + 7g بصل + 7g بندورة + 3g بهارات وزيت
-},
-{
-  id: 'fateer_lahme_large',
-  name: 'Fateer bil Lahme (Large)',
-  nameAr: 'فطير باللحمه - كبير',
-  category: 'prepared',
-  defaultUnit: 'piece',
-  availableUnits: ['piece', 'gram'],
-  nutritionPer100g: {
-    calories: 235,
-    protein: 9.5,
-    carbs: 28,
-    fat: 9,
-    fiber: 1.5,
-    sugar: 2.5,
-    sodium: 280,
-    iron: 1.8,
-    calcium: 35,
-    vitaminC: 4,
-  },
-  pieceWeightG: 180 // 110g عجين + 35g لحم + 14g بصل + 14g بندورة + 7g بهارات وزيت
+  pieceWeightG: 130
 },
 
-// ===== المأكولات الفلسطينية الشهيرة =====
-
-// 1. المسخن (دجاج مع خبز وبصل وسماق)
+// ----- المسخن - الطبق الوطني الفلسطيني (دجاج مع خبز وبصل وسماق) -----
 {
   id: 'musakhan',
   name: 'Musakhan',
@@ -514,7 +540,7 @@ export const foodDatabase: FoodItem[] = [
   pieceWeightG: 200
 },
 
-// 2. المقلوبة (أرز مع لحم وخضار)
+// ----- المقلوبة (أرز مع لحم وخضار) -----
 {
   id: 'maqluba_palestinian',
   name: 'Maqluba Palestinian',
@@ -537,352 +563,7 @@ export const foodDatabase: FoodItem[] = [
   pieceWeightG: 280
 },
 
-// 3. الكنافة الفلسطينية (كنافة نابلسية)
-{
-  id: 'knafeh_nabulsi',
-  name: 'Knafeh Nabulsi',
-  nameAr: 'كنافة نابلسية',
-  category: 'sweets',
-  defaultUnit: 'piece',
-  availableUnits: ['piece', 'gram', 'bowl'],
-  nutritionPer100g: {
-    calories: 380,
-    protein: 6.5,
-    carbs: 42,
-    fat: 20,
-    fiber: 0.8,
-    sugar: 28,
-    sodium: 120,
-    iron: 0.8,
-    calcium: 85,
-    vitaminC: 0,
-  },
-  pieceWeightG: 150
-},
-
-// 4. الفتة الفلسطينية (خبز مع لحم ومرق)
-{
-  id: 'fatteh_palestinian',
-  name: 'Fatteh Palestinian',
-  nameAr: 'فتة فلسطينية',
-  category: 'prepared',
-  defaultUnit: 'bowl',
-  availableUnits: ['bowl', 'gram'],
-  nutritionPer100g: {
-    calories: 195,
-    protein: 10.5,
-    carbs: 24,
-    fat: 6.5,
-    fiber: 2.2,
-    sugar: 2.8,
-    sodium: 380,
-    iron: 2.2,
-    calcium: 50,
-    vitaminC: 5,
-  },
-  pieceWeightG: 300
-},
-
-// 5. السمبوسك الفلسطيني (مع لحم أو جبنة)
-{
-  id: 'sambousek_palestinian',
-  name: 'Sambousek Palestinian',
-  nameAr: 'سمبوسك فلسطيني',
-  category: 'prepared',
-  defaultUnit: 'piece',
-  availableUnits: ['piece', 'gram'],
-  nutritionPer100g: {
-    calories: 320,
-    protein: 10,
-    carbs: 30,
-    fat: 18,
-    fiber: 1.2,
-    sugar: 1.5,
-    sodium: 420,
-    iron: 1.6,
-    calcium: 28,
-    vitaminC: 2,
-  },
-  pieceWeightG: 45
-},
-
-// 6. الكبة الفلسطينية (كبة بالصينية أو كبة مشوية)
-{
-  id: 'kibbeh_palestinian',
-  name: 'Kibbeh Palestinian',
-  nameAr: 'كبة فلسطينية',
-  category: 'prepared',
-  defaultUnit: 'piece',
-  availableUnits: ['piece', 'gram'],
-  nutritionPer100g: {
-    calories: 250,
-    protein: 12,
-    carbs: 20,
-    fat: 14,
-    fiber: 2.5,
-    sugar: 1.2,
-    sodium: 380,
-    iron: 2.5,
-    calcium: 32,
-    vitaminC: 3,
-  },
-  pieceWeightG: 60
-},
-
-// 7. الدوالي الفلسطيني (ورق عنب محشي)
-{
-  id: 'dawali_palestinian',
-  name: 'Dawali Palestinian',
-  nameAr: 'دوالي فلسطيني',
-  category: 'prepared',
-  defaultUnit: 'piece',
-  availableUnits: ['piece', 'gram'],
-  nutritionPer100g: {
-    calories: 145,
-    protein: 4.5,
-    carbs: 18,
-    fat: 6,
-    fiber: 3.5,
-    sugar: 2.5,
-    sodium: 350,
-    iron: 1.8,
-    calcium: 45,
-    vitaminC: 12,
-  },
-  pieceWeightG: 35
-},
-
-// 8. المحشي الفلسطيني (كوسا، باذنجان، ورق عنب)
-{
-  id: 'mahshi_palestinian',
-  name: 'Mahshi Palestinian',
-  nameAr: 'محشي فلسطيني',
-  category: 'prepared',
-  defaultUnit: 'piece',
-  availableUnits: ['piece', 'gram'],
-  nutritionPer100g: {
-    calories: 130,
-    protein: 4,
-    carbs: 16,
-    fat: 5.5,
-    fiber: 3.8,
-    sugar: 3.2,
-    sodium: 320,
-    iron: 1.5,
-    calcium: 40,
-    vitaminC: 14,
-  },
-  pieceWeightG: 80
-},
-
-// 9. الزعتر الفلسطيني (خبز بالزعتر والزيت)
-{
-  id: 'zaatar_bread_palestinian',
-  name: 'Zaatar Bread Palestinian',
-  nameAr: 'خبز زعتر فلسطيني',
-  category: 'grains',
-  defaultUnit: 'piece',
-  availableUnits: ['piece', 'gram'],
-  nutritionPer100g: {
-    calories: 280,
-    protein: 8.5,
-    carbs: 35,
-    fat: 12,
-    fiber: 3.2,
-    sugar: 1.8,
-    sodium: 420,
-    iron: 3.2,
-    calcium: 120,
-    vitaminC: 2,
-  },
-  pieceWeightG: 80
-},
-
-// 10. القلقاس الفلسطيني (قلقاس باللحم)
-{
-  id: 'taro_palestinian',
-  name: 'Taro Palestinian',
-  nameAr: 'قلقاس فلسطيني',
-  category: 'prepared',
-  defaultUnit: 'bowl',
-  availableUnits: ['bowl', 'gram'],
-  nutritionPer100g: {
-    calories: 140,
-    protein: 6.5,
-    carbs: 20,
-    fat: 4.5,
-    fiber: 4.2,
-    sugar: 1.5,
-    sodium: 280,
-    iron: 2.8,
-    calcium: 55,
-    vitaminC: 8,
-  },
-  pieceWeightG: 300
-},
-
-// 11. العرق الفلسطيني (بسكويت بالتمر أو جوز)
-{
-  id: 'maamoul_palestinian',
-  name: 'Maamoul Palestinian',
-  nameAr: 'معمول فلسطيني',
-  category: 'sweets',
-  defaultUnit: 'piece',
-  availableUnits: ['piece', 'gram'],
-  nutritionPer100g: {
-    calories: 420,
-    protein: 6,
-    carbs: 52,
-    fat: 20,
-    fiber: 3.5,
-    sugar: 25,
-    sodium: 80,
-    iron: 1.5,
-    calcium: 45,
-    vitaminC: 0,
-  },
-  pieceWeightG: 45
-},
-
-// 12. الحمص الفلسطيني (مشوي أو مسلوق)
-{
-  id: 'hummus_palestinian',
-  name: 'Hummus Palestinian Style',
-  nameAr: 'حمص فلسطيني',
-  category: 'legumes',
-  defaultUnit: 'bowl',
-  availableUnits: ['bowl', 'gram', 'tbsp'],
-  nutritionPer100g: {
-    calories: 170,
-    protein: 8.5,
-    carbs: 15,
-    fat: 9.5,
-    fiber: 4.5,
-    sugar: 0.8,
-    sodium: 350,
-    iron: 2.6,
-    calcium: 45,
-    vitaminC: 4,
-  },
-  pieceWeightG: 250
-},
-
-// 13. المتبل الفلسطيني (بابا غنوج)
-{
-  id: 'baba_ghanouj_palestinian',
-  name: 'Baba Ghanouj Palestinian',
-  nameAr: 'متبل / بابا غنوج فلسطيني',
-  category: 'prepared',
-  defaultUnit: 'bowl',
-  availableUnits: ['bowl', 'gram', 'tbsp'],
-  nutritionPer100g: {
-    calories: 120,
-    protein: 2.5,
-    carbs: 10,
-    fat: 8,
-    fiber: 4.8,
-    sugar: 3.2,
-    sodium: 280,
-    iron: 0.9,
-    calcium: 32,
-    vitaminC: 5,
-  },
-  pieceWeightG: 200
-},
-
-// 14. الفلافل الفلسطينية (طعمية فلسطينية)
-{
-  id: 'falafel_palestinian',
-  name: 'Falafel Palestinian',
-  nameAr: 'فلافل فلسطيني',
-  category: 'legumes',
-  defaultUnit: 'piece',
-  availableUnits: ['piece', 'gram'],
-  nutritionPer100g: {
-    calories: 330,
-    protein: 13,
-    carbs: 32,
-    fat: 18,
-    fiber: 5.5,
-    sugar: 1.2,
-    sodium: 320,
-    iron: 3.4,
-    calcium: 52,
-    vitaminC: 4.5,
-  },
-  pieceWeightG: 20
-},
-
-// 15. المفتول الفلسطيني (كسكس فلسطيني)
-{
-  id: 'maftoul_palestinian',
-  name: 'Maftoul Palestinian',
-  nameAr: 'مفتول فلسطيني',
-  category: 'grains',
-  defaultUnit: 'bowl',
-  availableUnits: ['bowl', 'gram', 'cup'],
-  nutritionPer100g: {
-    calories: 340,
-    protein: 11,
-    carbs: 72,
-    fat: 1.8,
-    fiber: 5.5,
-    sugar: 0.8,
-    sodium: 18,
-    iron: 2.2,
-    calcium: 32,
-    vitaminC: 0,
-  },
-  pieceWeightG: 200
-},
-
-// 16. الشاورما الفلسطينية (لحم أو دجاج)
-{
-  id: 'shawarma_palestinian',
-  name: 'Shawarma Palestinian',
-  nameAr: 'شاورما فلسطيني',
-  category: 'protein',
-  defaultUnit: 'gram',
-  availableUnits: ['gram', 'piece', 'bowl'],
-  nutritionPer100g: {
-    calories: 220,
-    protein: 18,
-    carbs: 5,
-    fat: 14,
-    fiber: 0.8,
-    sugar: 1.5,
-    sodium: 450,
-    iron: 2.5,
-    calcium: 28,
-    vitaminC: 3,
-  },
-  pieceWeightG: 200
-},
-
-// 17. الكنافة بالقشطة (فلسطينية)
-{
-  id: 'knafeh_cream',
-  name: 'Knafeh with Cream',
-  nameAr: 'كنافة بالقشطة',
-  category: 'sweets',
-  defaultUnit: 'piece',
-  availableUnits: ['piece', 'gram', 'bowl'],
-  nutritionPer100g: {
-    calories: 395,
-    protein: 7,
-    carbs: 40,
-    fat: 22,
-    fiber: 0.6,
-    sugar: 26,
-    sodium: 110,
-    iron: 0.7,
-    calcium: 95,
-    vitaminC: 0,
-  },
-  pieceWeightG: 160
-},
-
-// 18. المنسف الفلسطيني
+// ----- المنسف (لحم مع أرز ولبن جميد) -----
 {
   id: 'mansaf_palestinian',
   name: 'Mansaf Palestinian',
@@ -905,30 +586,191 @@ export const foodDatabase: FoodItem[] = [
   pieceWeightG: 300
 },
 
-// 19. اللحم بالعظم الفلسطيني (يخنة)
+// ----- القلقاس (قلقاس باللحم والكزبرة) -----
 {
-  id: 'meat_stew_palestinian',
-  name: 'Meat Stew Palestinian',
-  nameAr: 'يخنة لحم فلسطينية',
+  id: 'taro_palestinian',
+  name: 'Taro Palestinian',
+  nameAr: 'قلقاس فلسطيني',
   category: 'prepared',
   defaultUnit: 'bowl',
   availableUnits: ['bowl', 'gram'],
   nutritionPer100g: {
-    calories: 175,
-    protein: 15,
-    carbs: 8,
-    fat: 9,
-    fiber: 2.5,
-    sugar: 3.2,
-    sodium: 340,
+    calories: 140,
+    protein: 6.5,
+    carbs: 20,
+    fat: 4.5,
+    fiber: 4.2,
+    sugar: 1.5,
+    sodium: 280,
     iron: 2.8,
-    calcium: 28,
-    vitaminC: 6,
+    calcium: 55,
+    vitaminC: 8,
   },
-  pieceWeightG: 280
+  pieceWeightG: 300
 },
 
-// 20. العدس الفلسطيني (شوربة عدس فلسطينية)
+// ----- الفتة (خبز مع لحم ومرق ولبن) -----
+{
+  id: 'fatteh_palestinian',
+  name: 'Fatteh Palestinian',
+  nameAr: 'فتة فلسطينية',
+  category: 'prepared',
+  defaultUnit: 'bowl',
+  availableUnits: ['bowl', 'gram'],
+  nutritionPer100g: {
+    calories: 195,
+    protein: 10.5,
+    carbs: 24,
+    fat: 6.5,
+    fiber: 2.2,
+    sugar: 2.8,
+    sodium: 380,
+    iron: 2.2,
+    calcium: 50,
+    vitaminC: 5,
+  },
+  pieceWeightG: 300
+},
+
+// ----- الحمص الفلسطيني -----
+{
+  id: 'hummus_palestinian',
+  name: 'Hummus Palestinian',
+  nameAr: 'حمص فلسطيني',
+  category: 'prepared',
+  defaultUnit: 'bowl',
+  availableUnits: ['bowl', 'gram', 'tbsp'],
+  nutritionPer100g: {
+    calories: 170,
+    protein: 8.5,
+    carbs: 15,
+    fat: 9.5,
+    fiber: 4.5,
+    sugar: 0.8,
+    sodium: 350,
+    iron: 2.6,
+    calcium: 45,
+    vitaminC: 4,
+  },
+  pieceWeightG: 250
+},
+
+// ----- المتبل / بابا غنوج -----
+{
+  id: 'baba_ghanouj_palestinian',
+  name: 'Baba Ghanouj Palestinian',
+  nameAr: 'متبل فلسطيني',
+  category: 'prepared',
+  defaultUnit: 'bowl',
+  availableUnits: ['bowl', 'gram', 'tbsp'],
+  nutritionPer100g: {
+    calories: 120,
+    protein: 2.5,
+    carbs: 10,
+    fat: 8,
+    fiber: 4.8,
+    sugar: 3.2,
+    sodium: 280,
+    iron: 0.9,
+    calcium: 32,
+    vitaminC: 5,
+  },
+  pieceWeightG: 200
+},
+
+// ----- الفلافل الفلسطيني -----
+{
+  id: 'falafel_palestinian',
+  name: 'Falafel Palestinian',
+  nameAr: 'فلافل فلسطيني',
+  category: 'prepared',
+  defaultUnit: 'piece',
+  availableUnits: ['piece', 'gram'],
+  nutritionPer100g: {
+    calories: 330,
+    protein: 13,
+    carbs: 32,
+    fat: 18,
+    fiber: 5.5,
+    sugar: 1.2,
+    sodium: 320,
+    iron: 3.4,
+    calcium: 52,
+    vitaminC: 4.5,
+  },
+  pieceWeightG: 20
+},
+
+// ----- الكنافة النابلسية -----
+{
+  id: 'knafeh_nabulsi',
+  name: 'Knafeh Nabulsi',
+  nameAr: 'كنافة نابلسية',
+  category: 'prepared',
+  defaultUnit: 'piece',
+  availableUnits: ['piece', 'gram', 'bowl'],
+  nutritionPer100g: {
+    calories: 380,
+    protein: 6.5,
+    carbs: 42,
+    fat: 20,
+    fiber: 0.8,
+    sugar: 28,
+    sodium: 120,
+    iron: 0.8,
+    calcium: 85,
+    vitaminC: 0,
+  },
+  pieceWeightG: 150
+},
+
+// ----- المعمول الفلسطيني -----
+{
+  id: 'maamoul_palestinian',
+  name: 'Maamoul Palestinian',
+  nameAr: 'معمول فلسطيني',
+  category: 'prepared',
+  defaultUnit: 'piece',
+  availableUnits: ['piece', 'gram'],
+  nutritionPer100g: {
+    calories: 420,
+    protein: 6,
+    carbs: 52,
+    fat: 20,
+    fiber: 3.5,
+    sugar: 25,
+    sodium: 80,
+    iron: 1.5,
+    calcium: 45,
+    vitaminC: 0,
+  },
+  pieceWeightG: 45
+},
+
+// ----- خبز الزعتر الفلسطيني -----
+{
+  id: 'zaatar_bread_palestinian',
+  name: 'Zaatar Bread Palestinian',
+  nameAr: 'خبز زعتر فلسطيني',
+  category: 'prepared',
+  defaultUnit: 'piece',
+  availableUnits: ['piece', 'gram'],
+  nutritionPer100g: {
+    calories: 280,
+    protein: 8.5,
+    carbs: 35,
+    fat: 12,
+    fiber: 3.2,
+    sugar: 1.8,
+    sodium: 420,
+    iron: 3.2,
+    calcium: 120,
+    vitaminC: 2,
+  },
+  pieceWeightG: 80
+},
+
+// ----- شوربة العدس الفلسطينية -----
 {
   id: 'lentil_soup_palestinian',
   name: 'Lentil Soup Palestinian',
@@ -949,8 +791,7 @@ export const foodDatabase: FoodItem[] = [
     vitaminC: 3,
   },
   pieceWeightG: 250
-},
-];
+}];
 
 export function searchFood(query: string): FoodItem[] {
   const q = query.toLowerCase().trim();
